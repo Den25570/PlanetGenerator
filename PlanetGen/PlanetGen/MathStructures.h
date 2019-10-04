@@ -22,9 +22,21 @@ struct Vector3
 
 struct VectorM
 {
-	Vector3 Start;
-	Vector3 End;
+	Vector3 start;
+	Vector3 end;
 	float value;
+
+	//Конструкторы
+	inline VectorM(void) {}
+	inline VectorM(const Vector3 v1, const Vector3 v2, const float _value);
+
+	//Перегрузка арифметических операторов
+	inline VectorM operator + (const VectorM& vector) const;
+	inline VectorM operator * (const float num) const;
+
+	//Перегрузка логических операторов
+	inline VectorM operator = (const VectorM& vector);
+	inline bool operator == (const VectorM& vector2);
 };
 
 struct Sphere
