@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef MATH_STRUCT
-#define MATH_STRUCT
-
 struct Vector3
 {
 	float X, Y, Z;
@@ -23,5 +20,18 @@ struct Vector3
 	inline bool operator == (const Vector3& vector2);
 };
 
-#endif
+struct VectorM
+{
+	Vector3 Start;
+	Vector3 End;
+	float value;
+};
+
+struct Sphere
+{
+	float radius;
+	Vector3 position;
+};
+
+
 

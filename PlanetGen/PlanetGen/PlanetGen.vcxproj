@@ -116,6 +116,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="MathStructures.h" />
+    <ClInclude Include="Voronoi.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MathStructures.cpp" />
