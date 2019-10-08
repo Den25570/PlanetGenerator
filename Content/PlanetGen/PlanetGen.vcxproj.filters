@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Исходные файлы">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Файлы заголовков">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Файлы ресурсов">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Файлы заголовков\math">
+      <UniqueIdentifier>{272d1955-435c-4f3e-ba63-a121c1e9f729}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\logic">
+      <UniqueIdentifier>{e3cf24cd-99bd-4e59-bb30-5e5a7c6c2618}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\render">
+      <UniqueIdentifier>{2fbe5e44-2e98-456c-a6f6-4758df0d5a8b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Delanuay.h">
+      <Filter>Файлы заголовков\math</Filter>
+    </ClInclude>
+    <ClInclude Include="MathStructures.h">
+      <Filter>Файлы заголовков\math</Filter>
+    </ClInclude>
+    <ClInclude Include="Voronoi.h">
+      <Filter>Файлы заголовков\math</Filter>
+    </ClInclude>
+    <ClInclude Include="PlanetData.h">
+      <Filter>Файлы заголовков\logic</Filter>
+    </ClInclude>
+    <ClInclude Include="Plates.h">
+      <Filter>Файлы заголовков\logic</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="MathStructures.cpp">
+      <Filter>Файлы ресурсов</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
