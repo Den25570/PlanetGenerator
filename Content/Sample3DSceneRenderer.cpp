@@ -17,6 +17,7 @@ using namespace Windows::Storage;
 Platform::String^ AngleKey = "Angle";
 Platform::String^ TrackingKey = "Tracking";
 
+
 // Загружает шейдеры вершин и пикселей из файлов и создает геометрию куба.
 Sample3DSceneRenderer::Sample3DSceneRenderer(const std::shared_ptr<DX::DeviceResources>& deviceResources) :
 	m_loadingComplete(false),
@@ -65,7 +66,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		ComPtr<ID3DBlob> pError;
 		DX::ThrowIfFailed(D3D12SerializeRootSignature(&descRootSignature, D3D_ROOT_SIGNATURE_VERSION_1, pSignature.GetAddressOf(), pError.GetAddressOf()));
 		DX::ThrowIfFailed(d3dDevice->CreateRootSignature(0, pSignature->GetBufferPointer(), pSignature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
-        NAME_D3D12_OBJECT(m_rootSignature);
+		NAME_D3D12_OBJECT(m_rootSignature);
 	}
 
 	// Асинхронная загрузка шейдеров.
@@ -89,8 +90,8 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC state = {};
 		state.InputLayout = { inputLayout, _countof(inputLayout) };
 		state.pRootSignature = m_rootSignature.Get();
-        state.VS = CD3DX12_SHADER_BYTECODE(&m_vertexShader[0], m_vertexShader.size());
-        state.PS = CD3DX12_SHADER_BYTECODE(&m_pixelShader[0], m_pixelShader.size());
+		state.VS = CD3DX12_SHADER_BYTECODE(&m_vertexShader[0], m_vertexShader.size());
+		state.PS = CD3DX12_SHADER_BYTECODE(&m_pixelShader[0], m_pixelShader.size());
 		state.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 		state.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 		state.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
@@ -114,12 +115,12 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 
 		// Создание списка команд.
 		DX::ThrowIfFailed(d3dDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_deviceResources->GetCommandAllocator(), m_pipelineState.Get(), IID_PPV_ARGS(&m_commandList)));
-        NAME_D3D12_OBJECT(m_commandList);
+		NAME_D3D12_OBJECT(m_commandList);
 
 		// Вершины куба. У каждой вершины есть расположение и цвет.
-		VertexPositionColor cubeVertices[] =
+		/*VertexPositionColor icosahedronVerticles[] =
 		{
-			{ XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f) },
+			{ XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(1.0f, 0.5f, 0.1f) },
 			{ XMFLOAT3(-0.5f, -0.5f,  0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
 			{ XMFLOAT3(-0.5f,  0.5f, -0.5f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
 			{ XMFLOAT3(-0.5f,  0.5f,  0.5f), XMFLOAT3(0.0f, 1.0f, 1.0f) },
@@ -127,9 +128,32 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 			{ XMFLOAT3(0.5f, -0.5f,  0.5f), XMFLOAT3(1.0f, 0.0f, 1.0f) },
 			{ XMFLOAT3(0.5f,  0.5f, -0.5f), XMFLOAT3(1.0f, 1.0f, 0.0f) },
 			{ XMFLOAT3(0.5f,  0.5f,  0.5f), XMFLOAT3(1.0f, 1.0f, 1.0f) },
+		};*/
+
+		float phi = (1.0 + sqrt(5.0)) / 2.0;
+		float du = 1.0 / sqrt(phi * phi + 1.0);
+		float dv = phi * du;
+
+		// Вершины икосаэдра. У каждой вершины есть расположение и цвет.
+		VertexPositionColor icosahedronVerticles[] =
+		{
+			{ XMFLOAT3(0, +dv, +du), XMFLOAT3(1.0f, 1.0f, 1.0f) },
+			{ XMFLOAT3(0, +dv, -du), XMFLOAT3(1.0f, 1.0f, 1.0f) },
+			{ XMFLOAT3(0, -dv, +du), XMFLOAT3(0.0f, 1.0f, 0.0f) },
+			{ XMFLOAT3(0, -dv, -du), XMFLOAT3(0.0f, 0.0f, 0.0f) },
+
+			{ XMFLOAT3(+du, 0, +dv), XMFLOAT3(1.0f, 1.0f, 1.0f) },
+			{ XMFLOAT3(-du, 0, +dv), XMFLOAT3(1.0f, 1.0f, 1.0f) },
+			{ XMFLOAT3(+du, 0, -dv), XMFLOAT3(1.0f, 1.0f, 0.0f) },
+			{ XMFLOAT3(-du, 0, -dv), XMFLOAT3(1.0f, 0.0f, 1.0f) },
+
+			{ XMFLOAT3(+dv, +du, 0), XMFLOAT3(0.0f, 0.0f, 0.5f) },
+			{ XMFLOAT3(+dv, -du, 0), XMFLOAT3(1.0f, 0.0f, 1.0f) },
+			{ XMFLOAT3(-dv, +du, 0), XMFLOAT3(1.0f, 1.0f, 0.0f) },
+			{ XMFLOAT3(-dv, -du, 0), XMFLOAT3(0.0f, 1.0f, 0.0f) },
 		};
 
-		const UINT vertexBufferSize = sizeof(cubeVertices);
+		const UINT vertexBufferSize = sizeof(icosahedronVerticles);
 
 		// Создание ресурса буфера вершин в куче по умолчанию GPU и скопировать в него данные вершины с помощью кучи передачи.
 		// Ресурс передачи не должен быть освобожден до тех пор, пока GPU не закончит его использовать.
@@ -154,12 +178,12 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 			nullptr,
 			IID_PPV_ARGS(&vertexBufferUpload)));
 
-        NAME_D3D12_OBJECT(m_vertexBuffer);
+		NAME_D3D12_OBJECT(m_vertexBuffer);
 
 		// Передача буфера вершин в GPU.
 		{
 			D3D12_SUBRESOURCE_DATA vertexData = {};
-			vertexData.pData = reinterpret_cast<BYTE*>(cubeVertices);
+			vertexData.pData = reinterpret_cast<BYTE*>(icosahedronVerticles);
 			vertexData.RowPitch = vertexBufferSize;
 			vertexData.SlicePitch = vertexData.RowPitch;
 
@@ -173,9 +197,9 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		// Загрузка сетчатых индексов. Каждые три индекса представляют треугольник, который отрисовывается на экране.
 		// Например, "0,2,1" означает, что вершины с индексами 0, 2 и 1 из буфера вершин составляют
 		// первый треугольник этой сетки.
-		unsigned short cubeIndices[] =
+		/*unsigned short icosahedronIndices[] =
 		{
-			0, 2, 1, // -x
+			1, 2, 0, // -x
 			1, 2, 3,
 
 			4, 5, 6, // +x
@@ -184,7 +208,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 			0, 1, 5, // -y
 			0, 5, 4,
 
-			2, 6, 7, // +y
+			7, 2, 6, // +y
 			2, 7, 3,
 
 			0, 4, 6, // -z
@@ -192,9 +216,38 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 
 			1, 3, 7, // +z
 			1, 7, 5,
-		};
+		};*/
 
-		const UINT indexBufferSize = sizeof(cubeIndices);
+		unsigned short icosahedronIndices[] =
+		{
+			 0, 1, 8,
+			 0,  4,  5,
+			 0,  5, 10,
+			 0,  8,  4,
+			 0, 10,  1,
+
+			 1,  6,  8,
+			 1,  7,  6,
+	 		 1, 10,  7,
+
+			 2,  3, 11,//
+			 2,  4,  9,//
+			 2,  5,  4,//
+			 2,  9,  3,//
+
+			 5, 2,  11,
+
+			 6,  7,  3,//
+			 7,  11, 3,//
+			 9,  6,  3,//
+
+			 4,  8,  9,//
+			 11, 10, 5,//
+			 6,  9,  8,//
+			 7, 10, 11,//
+		};
+		
+		const UINT indexBufferSize = sizeof(icosahedronIndices);
 
 		// Создание ресурса буфера индекса в куче по умолчанию GPU и скопировать в него данные индекса с помощью кучи передачи.
 		// Ресурс передачи не должен быть освобожден до тех пор, пока GPU не закончит его использовать.
@@ -222,7 +275,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		// Передача буфера индекса в GPU.
 		{
 			D3D12_SUBRESOURCE_DATA indexData = {};
-			indexData.pData = reinterpret_cast<BYTE*>(cubeIndices);
+			indexData.pData = reinterpret_cast<BYTE*>(icosahedronIndices);
 			indexData.RowPitch = indexBufferSize;
 			indexData.SlicePitch = indexData.RowPitch;
 
@@ -242,7 +295,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 			heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 			DX::ThrowIfFailed(d3dDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_cbvHeap)));
 
-            NAME_D3D12_OBJECT(m_cbvHeap);
+			NAME_D3D12_OBJECT(m_cbvHeap);
 		}
 
 		CD3DX12_RESOURCE_DESC constantBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(DX::c_frameCount * c_alignedConstantBufferSize);
@@ -254,7 +307,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 			nullptr,
 			IID_PPV_ARGS(&m_constantBuffer)));
 
-        NAME_D3D12_OBJECT(m_constantBuffer);
+		NAME_D3D12_OBJECT(m_constantBuffer);
 
 		// Создание представлений буфера констант для доступа к буферу передачи.
 		D3D12_GPU_VIRTUAL_ADDRESS cbvGpuAddress = m_constantBuffer->GetGPUVirtualAddress();
@@ -286,10 +339,10 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		// Создание представления буфера вершин или индекса.
 		m_vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
 		m_vertexBufferView.StrideInBytes = sizeof(VertexPositionColor);
-		m_vertexBufferView.SizeInBytes = sizeof(cubeVertices);
+		m_vertexBufferView.SizeInBytes = sizeof(icosahedronVerticles);
 
 		m_indexBufferView.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
-		m_indexBufferView.SizeInBytes = sizeof(cubeIndices);
+		m_indexBufferView.SizeInBytes = sizeof(icosahedronIndices);
 		m_indexBufferView.Format = DXGI_FORMAT_R16_UINT;
 
 		// Ожидание выполнения списка команд; буферы вершин или индекса нужно передать в GPU до того, как ресурсы передачи выйдут из области.
@@ -405,7 +458,7 @@ void Sample3DSceneRenderer::LoadState()
 void Sample3DSceneRenderer::Rotate(float radians)
 {
 	// Подготовка к передаче обновленной матрицы модели шейдеру.
-	XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixTranspose(XMMatrixRotationY(radians)));
+	XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixTranspose(XMMatrixRotationX(radians)));
 }
 
 void Sample3DSceneRenderer::StartTracking()
@@ -474,7 +527,7 @@ bool Sample3DSceneRenderer::Render()
 		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		m_commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
 		m_commandList->IASetIndexBuffer(&m_indexBufferView);
-		m_commandList->DrawIndexedInstanced(36, 1, 0, 0, 0);
+		m_commandList->DrawIndexedInstanced(60, 1, 0, 0, 0);
 
 		// Указание на то, что целевой объект отрисовки теперь будет использоваться, чтобы обозначать окончание выполнения списка команд.
 		CD3DX12_RESOURCE_BARRIER presentResourceBarrier =

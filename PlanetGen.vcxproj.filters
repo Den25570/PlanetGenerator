@@ -41,26 +41,82 @@
     <FxCompile Include="Content\SampleVertexShader.hlsl">
       <Filter>Содержимое</Filter>
     </FxCompile>
+    <Filter Include="Ресурсы\Math">
+      <UniqueIdentifier>{7129716c-1d6e-481c-bcdc-b6cfd7b8bf1c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Ресурсы\PlanetData">
+      <UniqueIdentifier>{5d6e94b7-89af-4fba-b012-7db6476845e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Ресурсы\Compiler/Directx">
+      <UniqueIdentifier>{68a04412-c582-449b-8ed7-d0d54eb3e187}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="App.cpp" />
+    <ClCompile Include="PlanetGenMain.cpp" />
+    <ClCompile Include="Content\PlanetGen\MathStructures.cpp">
+      <Filter>Содержимое</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>Ресурсы\Compiler/Directx</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="App.h" />
+    <ClInclude Include="PlanetGenMain.h" />
+    <ClInclude Include="Content\PlanetGen\Delanuay.h">
+      <Filter>Ресурсы\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Content\PlanetGen\MathStructures.h">
+      <Filter>Ресурсы\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Content\PlanetGen\Voronoi.h">
+      <Filter>Ресурсы\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Content\PlanetGen\PlanetData.h">
+      <Filter>Ресурсы\PlanetData</Filter>
+    </ClInclude>
+    <ClInclude Include="Content\PlanetGen\Plates.h">
+      <Filter>Ресурсы\PlanetData</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>Ресурсы\Compiler/Directx</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\PlanetGen\PlanetGen.vcxproj">
+      <Filter>Ресурсы\Compiler/Directx</Filter>
+    </None>
+    <None Include="PlanetGen_TemporaryKey.pfx">
+      <Filter>Ресурсы\Compiler/Directx</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
     <Image Include="Assets\LockScreenLogo.scale-200.png">
-      <Filter>Ресурсы</Filter>
+      <Filter>Ресурсы\Compiler/Directx</Filter>
     </Image>
     <Image Include="Assets\SplashScreen.scale-200.png">
-      <Filter>Ресурсы</Filter>
-    </Image>
-    <Image Include="Assets\Square150x150Logo.scale-200.png">
-      <Filter>Ресурсы</Filter>
+      <Filter>Ресурсы\Compiler/Directx</Filter>
     </Image>
     <Image Include="Assets\Square44x44Logo.scale-200.png">
-      <Filter>Ресурсы</Filter>
+      <Filter>Ресурсы\Compiler/Directx</Filter>
     </Image>
     <Image Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png">
-      <Filter>Ресурсы</Filter>
+      <Filter>Ресурсы\Compiler/Directx</Filter>
+    </Image>
+    <Image Include="Assets\Square150x150Logo.scale-200.png">
+      <Filter>Ресурсы\Compiler/Directx</Filter>
     </Image>
     <Image Include="Assets\StoreLogo.png">
-      <Filter>Ресурсы</Filter>
+      <Filter>Ресурсы\Compiler/Directx</Filter>
     </Image>
     <Image Include="Assets\Wide310x150Logo.scale-200.png">
-      <Filter>Ресурсы</Filter>
+      <Filter>Ресурсы\Compiler/Directx</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <AppxManifest Include="Package.appxmanifest">
+      <Filter>Ресурсы\Compiler/Directx</Filter>
+    </AppxManifest>
   </ItemGroup>
 </Project>

@@ -1,4 +1,5 @@
 #include "MathStructures.h"
+#include <pch.h>
 
 struct Vector3
 {

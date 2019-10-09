@@ -128,9 +128,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    
     <PackageCertificateKeyFile>PlanetGen_TemporaryKey.pfx</PackageCertificateKeyFile>
-    
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <Link>
@@ -249,6 +247,11 @@
     <ClInclude Include="App.h" />
     <ClInclude Include="Common\d3dx12.h" />
     <ClInclude Include="Common\DeviceResources.h" />
+    <ClInclude Include="Content\PlanetGen\Delanuay.h" />
+    <ClInclude Include="Content\PlanetGen\MathStructures.h" />
+    <ClInclude Include="Content\PlanetGen\PlanetData.h" />
+    <ClInclude Include="Content\PlanetGen\Plates.h" />
+    <ClInclude Include="Content\PlanetGen\Voronoi.h" />
     <ClInclude Include="PlanetGenMain.h" />
     <ClInclude Include="Common\DirectXHelper.h" />
     <ClInclude Include="Common\StepTimer.h" />
@@ -259,6 +262,7 @@
   <ItemGroup>
     <ClCompile Include="App.cpp" />
     <ClCompile Include="Common\DeviceResources.cpp" />
+    <ClCompile Include="Content\PlanetGen\MathStructures.cpp" />
     <ClCompile Include="PlanetGenMain.cpp" />
     <ClCompile Include="Content\Sample3DSceneRenderer.cpp" />
     <ClCompile Include="pch.cpp">
@@ -276,9 +280,8 @@
     <AppxManifest Include="Package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
-    
+    <None Include="Content\PlanetGen\PlanetGen.vcxproj" />
     <None Include="PlanetGen_TemporaryKey.pfx" />
-    
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Content\SamplePixelShader.hlsl">

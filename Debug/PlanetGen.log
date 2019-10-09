@@ -1,0 +1,4 @@
+﻿  Sample3DSceneRenderer.cpp
+e:\my works\planetgen\planetgen\content\sample3dscenerenderer.cpp(133): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+e:\my works\planetgen\planetgen\content\sample3dscenerenderer.cpp(134): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+  PlanetGen.vcxproj -> E:\My Works\PlanetGen\Debug\PlanetGen\PlanetGen.exe

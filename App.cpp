@@ -57,6 +57,12 @@ void App::Initialize(CoreApplicationView^ applicationView)
 // Вызывается при создании (или повторном создании) объекта CoreWindow.
 void App::SetWindow(CoreWindow^ window)
 {
+	/*window->PointerCursor = ref new CoreCursor(CoreCursorType::Arrow, 0);
+
+	PointerVisualizationSettings^ visualizationSettings = PointerVisualizationSettings::GetForCurrentView();
+	visualizationSettings->IsContactFeedbackEnabled = false;
+	visualizationSettings->IsBarrelButtonFeedbackEnabled = false;*/
+
 	window->SizeChanged += 
 		ref new TypedEventHandler<CoreWindow^, WindowSizeChangedEventArgs^>(this, &App::OnWindowSizeChanged);
 
@@ -66,6 +72,12 @@ void App::SetWindow(CoreWindow^ window)
 	window->Closed += 
 		ref new TypedEventHandler<CoreWindow^, CoreWindowEventArgs^>(this, &App::OnWindowClosed);
 
+	window->KeyDown +=
+		ref new TypedEventHandler<CoreWindow^, KeyEventArgs^>(this, &App::OnKeyPressed);
+
+	//window->PointerPressed +=
+	//	ref new TypedEventHandler<CoreWindow^, PointerEventArgs^>(this, &App::OnPointerPressed);
+
 	DisplayInformation^ currentDisplayInformation = DisplayInformation::GetForCurrentView();
 
 	currentDisplayInformation->DpiChanged +=
@@ -73,6 +85,9 @@ void App::SetWindow(CoreWindow^ window)
 
 	currentDisplayInformation->OrientationChanged +=
 		ref new TypedEventHandler<DisplayInformation^, Object^>(this, &App::OnOrientationChanged);
+
+	//currentDisplayInformation->StereoEnabledChanged +=
+	//	ref new TypedEventHandler<DisplayInformation^, Platform::Object^>(this, &App::OnStereoEnabledChanged);
 
 	DisplayInformation::DisplayContentsInvalidated +=
 		ref new TypedEventHandler<DisplayInformation^, Object^>(this, &App::OnDisplayContentsInvalidated);
@@ -188,6 +203,23 @@ void App::OnDpiChanged(DisplayInformation^ sender, Object^ args)
 	m_main->OnWindowSizeChanged();
 }
 
+void App::OnKeyPressed(CoreWindow^ sender, KeyEventArgs^ args)
+{
+	if (args->VirtualKey == Windows::System::VirtualKey::Escape)
+	{
+		App::Uninitialize();
+	}
+}
+
+void App::OnPointerPressed(CoreWindow^ sender, PointerEventArgs^ args)
+{
+	// Allow the user to interact with the holographic world using the mouse.
+	if (m_main != nullptr)
+	{
+	/*	m_main->OnPointerPressed();*/
+	}
+}
+
 void App::OnOrientationChanged(DisplayInformation^ sender, Object^ args)
 {
 	GetDeviceResources()->SetCurrentOrientation(sender->CurrentOrientation);
@@ -198,6 +230,11 @@ void App::OnDisplayContentsInvalidated(DisplayInformation^ sender, Object^ args)
 {
 	GetDeviceResources()->ValidateDevice();
 }
+
+/*void App::OnPointerPressed()
+{
+	m_pointerPressed = true;
+}*/
 
 std::shared_ptr<DX::DeviceResources> App::GetDeviceResources()
 {

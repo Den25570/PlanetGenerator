@@ -19,6 +19,9 @@ namespace PlanetGen
 		virtual void Run();
 		virtual void Uninitialize();
 
+		// void OnPointerPressed();
+		//bool m_pointerPressed = false;
+
 	protected:
 		// Обработчики событий жизненного цикла приложения.
 		void OnActivated(Windows::ApplicationModel::Core::CoreApplicationView^ applicationView, Windows::ApplicationModel::Activation::IActivatedEventArgs^ args);
@@ -34,6 +37,8 @@ namespace PlanetGen
 		void OnDpiChanged(Windows::Graphics::Display::DisplayInformation^ sender, Platform::Object^ args);
 		void OnOrientationChanged(Windows::Graphics::Display::DisplayInformation^ sender, Platform::Object^ args);
 		void OnDisplayContentsInvalidated(Windows::Graphics::Display::DisplayInformation^ sender, Platform::Object^ args);
+		void OnKeyPressed(Windows::UI::Core::CoreWindow^ sender, Windows::UI::Core::KeyEventArgs^ args);
+		void OnPointerPressed(Windows::UI::Core::CoreWindow^ sender, Windows::UI::Core::PointerEventArgs^ args);
 
 	private:
 		// Частный метод доступа для m_deviceResources, защищает от удаленных ошибок устройства.
