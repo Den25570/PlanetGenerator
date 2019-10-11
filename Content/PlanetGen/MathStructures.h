@@ -1,7 +1,8 @@
 #pragma once
 
-struct Vector3
+class Vector3
 {
+public:
 	float X, Y, Z;
 
 	//Конструкторы
@@ -18,6 +19,8 @@ struct Vector3
 	//Перегрузка логических операторов
 	inline Vector3 operator = (const Vector3& vector);
 	inline bool operator == (const Vector3& vector2);
+
+    void normalize();
 };
 
 struct VectorM

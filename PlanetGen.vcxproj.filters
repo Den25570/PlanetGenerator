@@ -54,11 +54,14 @@
   <ItemGroup>
     <ClCompile Include="App.cpp" />
     <ClCompile Include="PlanetGenMain.cpp" />
-    <ClCompile Include="Content\PlanetGen\MathStructures.cpp">
-      <Filter>Содержимое</Filter>
-    </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>Ресурсы\Compiler/Directx</Filter>
+    </ClCompile>
+    <ClCompile Include="Content\PlanetGen\MathStructures.cpp">
+      <Filter>Ресурсы\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="mesh.cpp">
+      <Filter>Ресурсы\Math</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -81,6 +84,9 @@
     </ClInclude>
     <ClInclude Include="pch.h">
       <Filter>Ресурсы\Compiler/Directx</Filter>
+    </ClInclude>
+    <ClInclude Include="mesh.h">
+      <Filter>Ресурсы\Math</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

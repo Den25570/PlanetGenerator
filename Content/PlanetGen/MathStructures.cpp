@@ -1,8 +1,9 @@
 #include "MathStructures.h"
 #include <pch.h>
 
-struct Vector3
+class Vector3
 {
+public:
 	float X, Y, Z;
 
 	//Конструкторы
@@ -36,7 +37,7 @@ struct Vector3
 	inline Vector3 operator * (const float num) const
 	{
 		return Vector3(X * num, Y * num, Z * num);
-	}
+	}	
 
 	//Перегрузка логических операторов
 	inline Vector3 operator = (const Vector3& vector)
@@ -51,6 +52,14 @@ struct Vector3
 	inline bool operator == (const Vector3& vector2)
 	{
 		return (X == vector2.X) && (Y == vector2.Y) && (Z == vector2.Z);
+	}
+
+	void normalize()
+	{
+		float length = pow(X, 2) + pow(Y, 2) + pow(Z, 2);
+		X /= length;
+		Y /= length;
+		Z /= length;
 	}
 };
 

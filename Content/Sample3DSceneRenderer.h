@@ -3,9 +3,13 @@
 #include "..\Common\DeviceResources.h"
 #include "ShaderStructures.h"
 #include "..\Common\StepTimer.h"
+#include "mesh.h"
 
 namespace PlanetGen
 {
+	//2^n = SPHERE_SUBDIVISIONS_COUNT
+	const int SPHERE_SUBDIVISIONS_COUNT = 8;
+
 	// Этот пример визуализатора создает экземпляр базового конвейера отрисовки.
 	class Sample3DSceneRenderer
 	{
@@ -26,6 +30,9 @@ namespace PlanetGen
 	private:
 		void LoadState();
 		void Rotate(float radians);
+
+		VertexPositionColor extractVertexes(Mesh* mesh);
+		unsigned short extractIndexes(Mesh* mesh);
 
 	private:
 		// Буферы констант должны быть выравнены до 256 байт.
@@ -57,5 +64,7 @@ namespace PlanetGen
 		float	m_angle;
 		bool	m_tracking;
 	};
+
+	
 }
 

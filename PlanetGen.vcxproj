@@ -252,6 +252,7 @@
     <ClInclude Include="Content\PlanetGen\PlanetData.h" />
     <ClInclude Include="Content\PlanetGen\Plates.h" />
     <ClInclude Include="Content\PlanetGen\Voronoi.h" />
+    <ClInclude Include="mesh.h" />
     <ClInclude Include="PlanetGenMain.h" />
     <ClInclude Include="Common\DirectXHelper.h" />
     <ClInclude Include="Common\StepTimer.h" />
@@ -263,6 +264,7 @@
     <ClCompile Include="App.cpp" />
     <ClCompile Include="Common\DeviceResources.cpp" />
     <ClCompile Include="Content\PlanetGen\MathStructures.cpp" />
+    <ClCompile Include="mesh.cpp" />
     <ClCompile Include="PlanetGenMain.cpp" />
     <ClCompile Include="Content\Sample3DSceneRenderer.cpp" />
     <ClCompile Include="pch.cpp">

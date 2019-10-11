@@ -17,7 +17,6 @@ using namespace Windows::Storage;
 Platform::String^ AngleKey = "Angle";
 Platform::String^ TrackingKey = "Tracking";
 
-
 // Загружает шейдеры вершин и пикселей из файлов и создает геометрию куба.
 Sample3DSceneRenderer::Sample3DSceneRenderer(const std::shared_ptr<DX::DeviceResources>& deviceResources) :
 	m_loadingComplete(false),
@@ -117,41 +116,10 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		DX::ThrowIfFailed(d3dDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_deviceResources->GetCommandAllocator(), m_pipelineState.Get(), IID_PPV_ARGS(&m_commandList)));
 		NAME_D3D12_OBJECT(m_commandList);
 
-		// Вершины куба. У каждой вершины есть расположение и цвет.
-		/*VertexPositionColor icosahedronVerticles[] =
-		{
-			{ XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(1.0f, 0.5f, 0.1f) },
-			{ XMFLOAT3(-0.5f, -0.5f,  0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
-			{ XMFLOAT3(-0.5f,  0.5f, -0.5f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
-			{ XMFLOAT3(-0.5f,  0.5f,  0.5f), XMFLOAT3(0.0f, 1.0f, 1.0f) },
-			{ XMFLOAT3(0.5f, -0.5f, -0.5f), XMFLOAT3(1.0f, 0.0f, 0.0f) },
-			{ XMFLOAT3(0.5f, -0.5f,  0.5f), XMFLOAT3(1.0f, 0.0f, 1.0f) },
-			{ XMFLOAT3(0.5f,  0.5f, -0.5f), XMFLOAT3(1.0f, 1.0f, 0.0f) },
-			{ XMFLOAT3(0.5f,  0.5f,  0.5f), XMFLOAT3(1.0f, 1.0f, 1.0f) },
-		};*/
-
-		float phi = (1.0 + sqrt(5.0)) / 2.0;
-		float du = 1.0 / sqrt(phi * phi + 1.0);
-		float dv = phi * du;
-
-		// Вершины икосаэдра. У каждой вершины есть расположение и цвет.
-		VertexPositionColor icosahedronVerticles[] =
-		{
-			{ XMFLOAT3(0, +dv, +du), XMFLOAT3(1.0f, 1.0f, 1.0f) },
-			{ XMFLOAT3(0, +dv, -du), XMFLOAT3(1.0f, 1.0f, 1.0f) },
-			{ XMFLOAT3(0, -dv, +du), XMFLOAT3(0.0f, 1.0f, 0.0f) },
-			{ XMFLOAT3(0, -dv, -du), XMFLOAT3(0.0f, 0.0f, 0.0f) },
-
-			{ XMFLOAT3(+du, 0, +dv), XMFLOAT3(1.0f, 1.0f, 1.0f) },
-			{ XMFLOAT3(-du, 0, +dv), XMFLOAT3(1.0f, 1.0f, 1.0f) },
-			{ XMFLOAT3(+du, 0, -dv), XMFLOAT3(1.0f, 1.0f, 0.0f) },
-			{ XMFLOAT3(-du, 0, -dv), XMFLOAT3(1.0f, 0.0f, 1.0f) },
-
-			{ XMFLOAT3(+dv, +du, 0), XMFLOAT3(0.0f, 0.0f, 0.5f) },
-			{ XMFLOAT3(+dv, -du, 0), XMFLOAT3(1.0f, 0.0f, 1.0f) },
-			{ XMFLOAT3(-dv, +du, 0), XMFLOAT3(1.0f, 1.0f, 0.0f) },
-			{ XMFLOAT3(-dv, -du, 0), XMFLOAT3(0.0f, 1.0f, 0.0f) },
-		};
+		Mesh isocahedron = Mesh::GenerateIsocahedronMesh();
+		VertexPositionColor icosahedronVerticles[/*SPHERE_SUBDIVISIONS_COUNT*SPHERE_SUBDIVISIONS_COUNT*/12];	
+		for (int i = 0 ; i < isocahedron.verticles.size(); i++)
+			icosahedronVerticles[i] = VertexPositionColor({ isocahedron.verticles[i], XMFLOAT3((rand() % 100) / 100.0 ,(rand() % 100) / 100.0 ,(rand() % 100) / 100.0) });
 
 		const UINT vertexBufferSize = sizeof(icosahedronVerticles);
 
@@ -195,29 +163,6 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		}
 
 		// Загрузка сетчатых индексов. Каждые три индекса представляют треугольник, который отрисовывается на экране.
-		// Например, "0,2,1" означает, что вершины с индексами 0, 2 и 1 из буфера вершин составляют
-		// первый треугольник этой сетки.
-		/*unsigned short icosahedronIndices[] =
-		{
-			1, 2, 0, // -x
-			1, 2, 3,
-
-			4, 5, 6, // +x
-			5, 7, 6,
-
-			0, 1, 5, // -y
-			0, 5, 4,
-
-			7, 2, 6, // +y
-			2, 7, 3,
-
-			0, 4, 6, // -z
-			0, 6, 2,
-
-			1, 3, 7, // +z
-			1, 7, 5,
-		};*/
-
 		unsigned short icosahedronIndices[] =
 		{
 			 0, 1, 8,
@@ -458,7 +403,7 @@ void Sample3DSceneRenderer::LoadState()
 void Sample3DSceneRenderer::Rotate(float radians)
 {
 	// Подготовка к передаче обновленной матрицы модели шейдеру.
-	XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixTranspose(XMMatrixRotationX(radians)));
+	XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixTranspose(XMMatrixRotationY(radians)));
 }
 
 void Sample3DSceneRenderer::StartTracking()
