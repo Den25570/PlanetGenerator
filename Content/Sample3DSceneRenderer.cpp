@@ -117,9 +117,10 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		NAME_D3D12_OBJECT(m_commandList);
 
 		Mesh isocahedron = Mesh::GenerateIsocahedronMesh();
+		isocahedron.generateSubdivisions(1);
 		VertexPositionColor icosahedronVerticles[/*SPHERE_SUBDIVISIONS_COUNT*SPHERE_SUBDIVISIONS_COUNT*/12];	
-		for (int i = 0 ; i < isocahedron.verticles.size(); i++)
-			icosahedronVerticles[i] = VertexPositionColor({ isocahedron.verticles[i], XMFLOAT3((rand() % 100) / 100.0 ,(rand() % 100) / 100.0 ,(rand() % 100) / 100.0) });
+		for (int i = 0 ; i < isocahedron.vertexes.size(); i++)
+			icosahedronVerticles[i] = VertexPositionColor({ isocahedron.vertexes[i], XMFLOAT3((rand() % 100) / 100.0 ,(rand() % 100) / 100.0 ,(rand() % 100) / 100.0) });
 
 		const UINT vertexBufferSize = sizeof(icosahedronVerticles);
 

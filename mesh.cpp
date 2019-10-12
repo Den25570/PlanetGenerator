@@ -11,7 +11,7 @@ Mesh Mesh::GenerateIsocahedronMesh()
 
 	Mesh mesh;
 
-	mesh.verticles =
+	mesh.vertexes =
 	{
 		 XMFLOAT3(0, +dv, +du),
 		 XMFLOAT3(0, +dv, -du),
@@ -56,32 +56,66 @@ Mesh Mesh::GenerateIsocahedronMesh()
 	return mesh;
 }
 
-void Mesh::generateSubdivisions(int n, Mesh* startMesh)
+void Mesh::generateSubdivisions(int n)
 {
 	for (int i = 0; i < n; i++)
 	{
-		for (auto it = startMesh->triangles.begin(); it != startMesh->triangles.end(); ++it)
+		auto end = triangles.end();
+		for (auto it = triangles.begin(); it != end; ++it)
 		{
-			XMFLOAT3 v0 = startMesh->verticles[(*it)[0]];
-			XMFLOAT3 v1 = startMesh->verticles[(*it)[1]];
-			XMFLOAT3 v2 = startMesh->verticles[(*it)[2]];
+			XMFLOAT3 v0 = vertexes[(*it)[0]];
+			XMFLOAT3 v1 =  vertexes[(*it)[1]];
+			XMFLOAT3 v2 =  vertexes[(*it)[2]];
 
 			XMFLOAT3 v3 = XMFLOAT3((v0.x + v1.x)* 0.5f, (v0.y + v1.y)* 0.5f, (v0.z + v1.z)* 0.5f);
 			XMFLOAT3 v4 = XMFLOAT3((v1.x + v2.x)* 0.5f, (v1.y + v2.y)* 0.5f, (v1.z + v2.z)* 0.5f);
 			XMFLOAT3 v5 = XMFLOAT3((v0.x + v2.x)* 0.5f, (v0.y + v2.y)* 0.5f, (v0.z + v1.z)* 0.5f);
 
-			unsigned short ver3 = startMesh->verticles.size();
-			unsigned short ver4 = startMesh->verticles.size() + 1;
-			unsigned short ver5 = startMesh->verticles.size() + 2;
+		     short ver3 = vertexExist(v3);
+			 short ver4 = vertexExist(v4);
+			 short ver5 = vertexExist(v5);
 
-			startMesh->verticles.push_back(v3);
-			startMesh->verticles.push_back(v4);
-			startMesh->verticles.push_back(v5);
+			if (ver3 == -1)
+			{
+				ver3 =  vertexes.size();
+				 vertexes.push_back(v3);
+			}
+			if (ver4 == -1)
+			{
+				ver4 =  vertexes.size();
+				 vertexes.push_back(v4);
+			}
+			if (ver5 == -1)
+			{
+				ver5 =  vertexes.size();
+				 vertexes.push_back(v5);
+			}
 
-			startMesh->triangles.push_back({ (*it)[0], ver3, ver5 });
-			startMesh->triangles.push_back({ ver3, (*it)[1], ver4 });
-			startMesh->triangles.push_back({ ver4, (*it)[2], ver5 });
-			startMesh->triangles.push_back({ ver3, ver4,     ver5 });
+			triangles.push_back({ static_cast<unsigned short>(ver4), (*it)[2], static_cast<unsigned short>(ver5) });
+		    triangles.push_back({ static_cast<unsigned short>(ver3), (*it)[1], static_cast<unsigned short>(ver4) });			 
+		    triangles.push_back({ static_cast<unsigned short>(ver3), static_cast<unsigned short>(ver4), static_cast<unsigned short>(ver5) });	
+			*it = std::vector<unsigned short>{ (*it)[0], static_cast<unsigned short>(ver3), static_cast<unsigned short>(ver5) };
 		}
 	}
+}
+
+int Mesh::vertexExist(XMFLOAT3 vertex)
+{
+	for (int i = 0; i < vertexes.size(); i++)
+	{
+		if (compareF(vertexes[i].x, vertex.x) && compareF(vertexes[i].y, vertex.y) && compareF(vertexes[i].z, vertex.z))
+			return i;
+	}
+	return -1;
+}
+
+int Mesh::triangleExist(std::vector<unsigned short> triangle)
+{
+	int i = 0;
+	for (auto it = triangles.cbegin(); it != triangles.cend(); it++, i++)
+	{
+		if ((*it)[0] == triangle[0] && (*it)[1] == triangle[1] && (*it)[2] == triangle[2])
+			return i;
+	}
+	return -1;
 }

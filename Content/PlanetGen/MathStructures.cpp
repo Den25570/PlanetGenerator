@@ -61,6 +61,11 @@ public:
 		Y /= length;
 		Z /= length;
 	}
+
+	DirectX::XMFLOAT3 convertToXMFLOAT3()
+	{
+		return DirectX::XMFLOAT3(X, Y, Z);
+	}
 };
 
 struct VectorM
@@ -100,3 +105,13 @@ struct VectorM
 		return (start == vector2.start) && (end == vector2.end) && (value == vector2.value);
 	}
 };
+
+bool compareF(const float num_1, const float num_2, const float eps = 0.0001)
+{
+	return abs(num_1 - num_2) < eps;
+}
+
+bool compareD(const double num_1, const double num_2, const double eps = 0.0001)
+{
+	return abs(num_1 - num_2) < eps;
+}
