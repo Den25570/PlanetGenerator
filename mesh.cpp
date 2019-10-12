@@ -9,9 +9,9 @@ Mesh Mesh::GenerateIsocahedronMesh()
 	float du = 1.0 / sqrt(phi * phi + 1.0);
 	float dv = phi * du;
 
-	Mesh mesh;
+	Mesh icosahedron;
 
-	mesh.vertexes =
+	icosahedron.vertexes =
 	{
 		 XMFLOAT3(0, +dv, +du),
 		 XMFLOAT3(0, +dv, -du),
@@ -29,7 +29,7 @@ Mesh Mesh::GenerateIsocahedronMesh()
 		 XMFLOAT3(-dv, -du, 0),
 	};
 
-	mesh.triangles =
+	icosahedron.triangles =
 	{
 		{0, 1, 8  },
 		{0,  4,  5},
@@ -53,15 +53,17 @@ Mesh Mesh::GenerateIsocahedronMesh()
 		{7, 10, 11},
 	};
 
-	return mesh;
+	return icosahedron;
 }
 
 void Mesh::generateSubdivisions(int n)
 {
 	for (int i = 0; i < n; i++)
 	{
-		auto end = triangles.end();
-		for (auto it = triangles.begin(); it != end; ++it)
+		int j = 0;
+		int end = triangles.size();
+
+		for (auto it = triangles.begin(); j < end; it++, j++)
 		{
 			XMFLOAT3 v0 = vertexes[(*it)[0]];
 			XMFLOAT3 v1 =  vertexes[(*it)[1]];
@@ -69,7 +71,7 @@ void Mesh::generateSubdivisions(int n)
 
 			XMFLOAT3 v3 = XMFLOAT3((v0.x + v1.x)* 0.5f, (v0.y + v1.y)* 0.5f, (v0.z + v1.z)* 0.5f);
 			XMFLOAT3 v4 = XMFLOAT3((v1.x + v2.x)* 0.5f, (v1.y + v2.y)* 0.5f, (v1.z + v2.z)* 0.5f);
-			XMFLOAT3 v5 = XMFLOAT3((v0.x + v2.x)* 0.5f, (v0.y + v2.y)* 0.5f, (v0.z + v1.z)* 0.5f);
+			XMFLOAT3 v5 = XMFLOAT3((v0.x + v2.x)* 0.5f, (v0.y + v2.y)* 0.5f, (v0.z + v2.z)* 0.5f);
 
 		     short ver3 = vertexExist(v3);
 			 short ver4 = vertexExist(v4);
@@ -96,6 +98,21 @@ void Mesh::generateSubdivisions(int n)
 		    triangles.push_back({ static_cast<unsigned short>(ver3), static_cast<unsigned short>(ver4), static_cast<unsigned short>(ver5) });	
 			*it = std::vector<unsigned short>{ (*it)[0], static_cast<unsigned short>(ver3), static_cast<unsigned short>(ver5) };
 		}
+	}
+}
+
+void Mesh::normalizeVertexes(float sphereRadius)
+{
+	auto it = triangles.begin();
+	//float edgelength = sqrtf(powf(vertexes[(*it)[0]].x - vertexes[(*it)[1]].x, 2.0f) + powf(vertexes[(*it)[0]].y - vertexes[(*it)[1]].y, 2.0f) + powf(vertexes[(*it)[0]].z - vertexes[(*it)[1]].z, 2.0f));
+	//float radius = 0.25 * sqrtf(2 * (5 + sqrt(5))*edgelength);
+
+	for (auto it = vertexes.begin(); it != vertexes.end(); it++)
+	{
+		float length = sqrtf(it->x * it->x + it->y * it->y  + it->z * it->z);
+		it->x *= sphereRadius / length;
+		it->y *= sphereRadius / length;
+		it->z *= sphereRadius / length;
 	}
 }
 

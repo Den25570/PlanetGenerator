@@ -49,8 +49,8 @@ struct Sphere
 	Vector3 position;
 };
 
-bool compareF(const float num_1, const float num_2,const float eps = 0.0001);
-bool compareD(const double num_1, const double num_2, const double eps = 0.0001);
+bool compareF(const float num_1, const float num_2,const float eps = 0.01);
+bool compareD(const double num_1, const double num_2, const double eps = 0.01);
 
 
 

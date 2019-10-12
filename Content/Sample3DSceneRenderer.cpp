@@ -117,8 +117,9 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		NAME_D3D12_OBJECT(m_commandList);
 
 		Mesh isocahedron = Mesh::GenerateIsocahedronMesh();
-		isocahedron.generateSubdivisions(1);
-		VertexPositionColor icosahedronVerticles[/*SPHERE_SUBDIVISIONS_COUNT*SPHERE_SUBDIVISIONS_COUNT*/12];	
+		isocahedron.generateSubdivisions(SPHERE_SUBDIVISIONS_COUNT);
+		isocahedron.normalizeVertexes(SPHERE_RADIUS);
+		VertexPositionColor icosahedronVerticles[2562];	
 		for (int i = 0 ; i < isocahedron.vertexes.size(); i++)
 			icosahedronVerticles[i] = VertexPositionColor({ isocahedron.vertexes[i], XMFLOAT3((rand() % 100) / 100.0 ,(rand() % 100) / 100.0 ,(rand() % 100) / 100.0) });
 
@@ -164,35 +165,15 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		}
 
 		// Загрузка сетчатых индексов. Каждые три индекса представляют треугольник, который отрисовывается на экране.
-		unsigned short icosahedronIndices[] =
+		unsigned short icosahedronIndices[10000];
+		int i = 0;
+		for (auto it = isocahedron.triangles.cbegin(); it != isocahedron.triangles.cend(); it++, i += 3)
 		{
-			 0, 1, 8,
-			 0,  4,  5,
-			 0,  5, 10,
-			 0,  8,  4,
-			 0, 10,  1,
-
-			 1,  6,  8,
-			 1,  7,  6,
-	 		 1, 10,  7,
-
-			 2,  3, 11,//
-			 2,  4,  9,//
-			 2,  5,  4,//
-			 2,  9,  3,//
-
-			 5, 2,  11,
-
-			 6,  7,  3,//
-			 7,  11, 3,//
-			 9,  6,  3,//
-
-			 4,  8,  9,//
-			 11, 10, 5,//
-			 6,  9,  8,//
-			 7, 10, 11,//
-		};
-		
+			icosahedronIndices[i + 0] = (*it)[0];
+			icosahedronIndices[i + 1] = (*it)[1];
+			icosahedronIndices[i + 2] = (*it)[2];
+		}
+	
 		const UINT indexBufferSize = sizeof(icosahedronIndices);
 
 		// Создание ресурса буфера индекса в куче по умолчанию GPU и скопировать в него данные индекса с помощью кучи передачи.
@@ -473,7 +454,7 @@ bool Sample3DSceneRenderer::Render()
 		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		m_commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
 		m_commandList->IASetIndexBuffer(&m_indexBufferView);
-		m_commandList->DrawIndexedInstanced(60, 1, 0, 0, 0);
+		m_commandList->DrawIndexedInstanced(10000, 1, 0, 0, 0);
 
 		// Указание на то, что целевой объект отрисовки теперь будет использоваться, чтобы обозначать окончание выполнения списка команд.
 		CD3DX12_RESOURCE_BARRIER presentResourceBarrier =

@@ -1,32 +1,9 @@
-﻿  mesh.cpp
-e:\my works\planetgen\planetgen\mesh.cpp(8): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
-e:\my works\planetgen\planetgen\mesh.cpp(9): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
-e:\my works\planetgen\planetgen\mesh.cpp(79): warning C4267: =: преобразование из "size_t" в "short"; возможна потеря данных
-e:\my works\planetgen\planetgen\mesh.cpp(84): warning C4267: =: преобразование из "size_t" в "short"; возможна потеря данных
-e:\my works\planetgen\planetgen\mesh.cpp(89): warning C4267: =: преобразование из "size_t" в "short"; возможна потеря данных
-e:\my works\planetgen\planetgen\mesh.cpp(96): error C2678: бинарный "=": не найден оператор, принимающий левый операнд типа "const std::vector<unsigned short,std::allocator<_Ty>>" (или приемлемое преобразование отсутствует)
-          with
-          [
-              _Ty=unsigned short
-          ]
-  e:\microsoft visual studion 2017\mvs main\vc\tools\msvc\14.16.27023\include\vector(1419): note: может быть "std::vector<unsigned short,std::allocator<_Ty>> &std::vector<_Ty,std::allocator<_Ty>>::operator =(std::initializer_list<_Ty>)"
-          with
-          [
-              _Ty=unsigned short
-          ]
-  e:\microsoft visual studion 2017\mvs main\vc\tools\msvc\14.16.27023\include\vector(1398): note: или       "std::vector<unsigned short,std::allocator<_Ty>> &std::vector<_Ty,std::allocator<_Ty>>::operator =(const std::vector<_Ty,std::allocator<_Ty>> &)"
-          with
-          [
-              _Ty=unsigned short
-          ]
-  e:\microsoft visual studion 2017\mvs main\vc\tools\msvc\14.16.27023\include\vector(873): note: или       "std::vector<unsigned short,std::allocator<_Ty>> &std::vector<_Ty,std::allocator<_Ty>>::operator =(std::vector<_Ty,std::allocator<_Ty>> &&) noexcept(<expr>)"
-          with
-          [
-              _Ty=unsigned short
-          ]
-  e:\my works\planetgen\planetgen\mesh.cpp(96): note: при попытке сопоставить список аргументов "(const std::vector<unsigned short,std::allocator<_Ty>>, std::vector<unsigned short,std::allocator<_Ty>>)"
-          with
-          [
-              _Ty=unsigned short
-          ]
-e:\my works\planetgen\planetgen\mesh.cpp(103): warning C4018: <: несоответствие типов со знаком и без знака
+﻿  App.cpp
+  Sample3DSceneRenderer.cpp
+  PlanetGenMain.cpp
+e:\my works\planetgen\planetgen\content\sample3dscenerenderer.h(12): warning C4305: инициализация: усечение из "double" в "float" (компилируется исходный файл PlanetGenMain.cpp)
+e:\my works\planetgen\planetgen\content\sample3dscenerenderer.h(12): warning C4305: инициализация: усечение из "double" в "float" (компилируется исходный файл Content\Sample3DSceneRenderer.cpp)
+e:\my works\planetgen\planetgen\content\sample3dscenerenderer.h(12): warning C4305: инициализация: усечение из "double" в "float" (компилируется исходный файл App.cpp)
+e:\my works\planetgen\planetgen\content\sample3dscenerenderer.cpp(123): warning C4018: <: несоответствие типов со знаком и без знака
+e:\my works\planetgen\planetgen\content\sample3dscenerenderer.cpp(124): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
+  PlanetGen.vcxproj -> E:\My Works\PlanetGen\Debug\PlanetGen\PlanetGen.exe
