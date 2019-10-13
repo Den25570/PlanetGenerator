@@ -103,10 +103,6 @@ void Mesh::generateSubdivisions(int n)
 
 void Mesh::normalizeVertexes(float sphereRadius)
 {
-	auto it = triangles.begin();
-	//float edgelength = sqrtf(powf(vertexes[(*it)[0]].x - vertexes[(*it)[1]].x, 2.0f) + powf(vertexes[(*it)[0]].y - vertexes[(*it)[1]].y, 2.0f) + powf(vertexes[(*it)[0]].z - vertexes[(*it)[1]].z, 2.0f));
-	//float radius = 0.25 * sqrtf(2 * (5 + sqrt(5))*edgelength);
-
 	for (auto it = vertexes.begin(); it != vertexes.end(); it++)
 	{
 		float length = sqrtf(it->x * it->x + it->y * it->y  + it->z * it->z);

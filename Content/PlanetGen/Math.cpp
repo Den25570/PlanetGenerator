@@ -1,5 +1,7 @@
-#include "MathStructures.h"
+#include "Math.h"
 #include <pch.h>
+
+using namespace DirectX;
 
 class Vector3
 {
@@ -62,9 +64,9 @@ public:
 		Z /= length;
 	}
 
-	DirectX::XMFLOAT3 convertToXMFLOAT3()
+	XMFLOAT3 convertToXMFLOAT3()
 	{
-		return DirectX::XMFLOAT3(X, Y, Z);
+		return XMFLOAT3(X, Y, Z);
 	}
 };
 
@@ -106,6 +108,24 @@ struct VectorM
 	}
 };
 
+//Создание стереографической проекции
+std::vector<XMFLOAT2> projectSphereOnPlane(const std::vector<Vector3> originPoints)
+{
+	std::vector<XMFLOAT2> result(originPoints.size());
+	for (auto it = originPoints.cbegin(); it != originPoints.cend(); it++)
+		result.push_back(XMFLOAT2(it->X/(1 - it->Z), it->Y / (1 - it->Z)));
+	return result;
+}
+
+std::vector<Vector3> reverseProjectSphereOnPlane(const std::vector<XMFLOAT2> originPoints)
+{
+	std::vector<Vector3> result(originPoints.size());
+	for (auto it = originPoints.cbegin(); it != originPoints.cend(); it++)
+		result.push_back(Vector3(2*it->x/(1 + it->x*it->x + it->y*it->y), 2 * it->y / (1 + it->x*it->x + it->y*it->y),(-1 + it->x*it->x + it->y*it->y) / (1 + it->x*it->x + it->y*it->y)));
+	return result;
+}
+
+//Сравнение чисел с плавающей запятой
 bool compareF(const float num_1, const float num_2, const float eps = 0.0001)
 {
 	return abs(num_1 - num_2) < eps;

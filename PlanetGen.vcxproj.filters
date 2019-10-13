@@ -57,10 +57,10 @@
     <ClCompile Include="pch.cpp">
       <Filter>Ресурсы\Compiler/Directx</Filter>
     </ClCompile>
-    <ClCompile Include="Content\PlanetGen\MathStructures.cpp">
+    <ClCompile Include="mesh.cpp">
       <Filter>Ресурсы\Math</Filter>
     </ClCompile>
-    <ClCompile Include="mesh.cpp">
+    <ClCompile Include="Content\PlanetGen\Math.cpp">
       <Filter>Ресурсы\Math</Filter>
     </ClCompile>
   </ItemGroup>
@@ -68,9 +68,6 @@
     <ClInclude Include="App.h" />
     <ClInclude Include="PlanetGenMain.h" />
     <ClInclude Include="Content\PlanetGen\Delanuay.h">
-      <Filter>Ресурсы\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Content\PlanetGen\MathStructures.h">
       <Filter>Ресурсы\Math</Filter>
     </ClInclude>
     <ClInclude Include="Content\PlanetGen\Voronoi.h">
@@ -86,6 +83,9 @@
       <Filter>Ресурсы\Compiler/Directx</Filter>
     </ClInclude>
     <ClInclude Include="mesh.h">
+      <Filter>Ресурсы\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Content\PlanetGen\Math.h">
       <Filter>Ресурсы\Math</Filter>
     </ClInclude>
   </ItemGroup>

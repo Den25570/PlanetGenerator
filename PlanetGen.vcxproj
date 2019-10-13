@@ -248,7 +248,7 @@
     <ClInclude Include="Common\d3dx12.h" />
     <ClInclude Include="Common\DeviceResources.h" />
     <ClInclude Include="Content\PlanetGen\Delanuay.h" />
-    <ClInclude Include="Content\PlanetGen\MathStructures.h" />
+    <ClInclude Include="Content\PlanetGen\Math.h" />
     <ClInclude Include="Content\PlanetGen\PlanetData.h" />
     <ClInclude Include="Content\PlanetGen\Plates.h" />
     <ClInclude Include="Content\PlanetGen\Voronoi.h" />
@@ -263,7 +263,7 @@
   <ItemGroup>
     <ClCompile Include="App.cpp" />
     <ClCompile Include="Common\DeviceResources.cpp" />
-    <ClCompile Include="Content\PlanetGen\MathStructures.cpp" />
+    <ClCompile Include="Content\PlanetGen\Math.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="PlanetGenMain.cpp" />
     <ClCompile Include="Content\Sample3DSceneRenderer.cpp" />

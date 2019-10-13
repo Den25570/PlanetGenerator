@@ -1,9 +1,11 @@
 #pragma once
 
+using namespace DirectX;
+
 class Vector3
 {
 public:
-	float X, Y, Z;
+	float x, y, z;
 
 	//Конструкторы
 	inline Vector3(void) {}
@@ -21,7 +23,7 @@ public:
 	inline bool operator == (const Vector3& vector2);
 
     void normalize();
-	DirectX::XMFLOAT3 convertToXMFLOAT3();
+	XMFLOAT3 convertToXMFLOAT3();
 };
 
 struct VectorM
@@ -43,14 +45,20 @@ struct VectorM
 	inline bool operator == (const VectorM& vector2);
 };
 
-struct Sphere
+class Sphere
 {
+public:
 	float radius;
 	Vector3 position;
 };
 
-bool compareF(const float num_1, const float num_2,const float eps = 0.01);
-bool compareD(const double num_1, const double num_2, const double eps = 0.01);
+//Создание стереографической проекции
+std::vector<XMFLOAT2> projectSphereOnPlane(const std::vector<Vector3> originPoints);
+std::vector<Vector3> reverseProjectSphereOnPlane(const std::vector<XMFLOAT2> originPoints);
+
+//Сравнение чисел с плавающей запятой
+bool compareF(const float num_1, const float num_2,const float eps = 0.001);
+bool compareD(const double num_1, const double num_2, const double eps = 0.001);
 
 
 

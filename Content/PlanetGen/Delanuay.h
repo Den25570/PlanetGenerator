@@ -1,17 +1,18 @@
 #pragma once
-#include "MathStructures.h"
-#include <list>
+#pragma once
+#include "Math.h"
+#include <mesh.h>
 
-class Triangulation2
+class Triangulation
 {
-	std::list<DelanuayPoint> points;
-	std::list<DelanuayEdge> points;
+	std::vector<DelanuayPoint> points;
+	std::vector<DelanuayEdge> edges;
 };
 
 class DelanuayPoint
 {
 	Vector3 position;
-	std::list<DelanuayEdge> edges;
+	std::vector<DelanuayEdge> edges;
 };
 
 class DelanuayEdge

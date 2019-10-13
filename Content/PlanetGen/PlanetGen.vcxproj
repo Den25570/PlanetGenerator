@@ -117,12 +117,12 @@
   <ItemGroup>
     <ClInclude Include="Delanuay.h" />
     <ClInclude Include="PlanetData.h" />
-    <ClInclude Include="MathStructures.h" />
+    <ClInclude Include="Math.h" />
     <ClInclude Include="Plates.h" />
     <ClInclude Include="Voronoi.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="MathStructures.cpp" />
+    <ClCompile Include="Math.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

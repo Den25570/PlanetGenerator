@@ -121,7 +121,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		isocahedron.normalizeVertexes(SPHERE_RADIUS);
 		VertexPositionColor icosahedronVerticles[2562];	
 		for (int i = 0 ; i < isocahedron.vertexes.size(); i++)
-			icosahedronVerticles[i] = VertexPositionColor({ isocahedron.vertexes[i], XMFLOAT3((rand() % 100) / 100.0 ,(rand() % 100) / 100.0 ,(rand() % 100) / 100.0) });
+			icosahedronVerticles[i] = VertexPositionColor({ isocahedron.vertexes[i], XMFLOAT3((rand() % 20+80) / 100.0 ,(rand() % 20 + 80) / 100.0 ,(rand() % 20 + 80) / 100.0) });
 
 		const UINT vertexBufferSize = sizeof(icosahedronVerticles);
 
