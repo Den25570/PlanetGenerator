@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "mesh.h"
+#include <queue>
 
 using namespace DirectX;
 
@@ -97,6 +98,69 @@ void Mesh::generateSubdivisions(int n)
 		    triangles.push_back({ static_cast<unsigned short>(ver3), (*it)[1], static_cast<unsigned short>(ver4) });			 
 		    triangles.push_back({ static_cast<unsigned short>(ver3), static_cast<unsigned short>(ver4), static_cast<unsigned short>(ver5) });	
 			*it = std::vector<unsigned short>{ (*it)[0], static_cast<unsigned short>(ver3), static_cast<unsigned short>(ver5) };
+		}
+	}
+}
+
+XMFLOAT3 calcVector(XMFLOAT3 v0, XMFLOAT3 v1, int length, int multiplier)
+{
+	return XMFLOAT3(v0.x + abs(v0.x - v1.x)/length* multiplier, v0.y + abs(v0.y - v1.y)/length * multiplier, v0.z + abs(v0.z - v1.z)/length * multiplier);
+}
+
+void Mesh::generateSubdivisions_v2(int n)
+{
+	for (int i = 1; i <= n; i++)
+	{
+		int j = 0;
+		int size = triangles.size();
+
+		for (auto it = triangles.begin(); j < size; it++, j++)
+		{
+			std::queue<unsigned short> queue;			
+			std::vector<XMFLOAT3> bottom_vertexes;
+			std::vector<XMFLOAT3> bottom_vertexes_rev;
+
+			bottom_vertexes.push_back(vertexes[(*it)[1]]);
+			for (int i = 1; i < n; i++)
+				bottom_vertexes.push_back(calcVector(vertexes[(*it)[1]], vertexes[(*it)[2]], n,i));
+			bottom_vertexes.push_back(vertexes[(*it)[2]]);
+
+			bottom_vertexes_rev = bottom_vertexes;
+			bottom_vertexes_rev.reserve(bottom_vertexes_rev.size());
+
+			int j = 0;
+			queue.push((*it)[0]);
+			for (int i = 0; i < n; i++)
+			{
+				std::vector<unsigned short> added_vertexes_indexes;
+				for (int j = 0; j <= i; j++)
+				{
+					unsigned short index = queue.front;
+					queue.pop();
+
+					XMFLOAT3 v0 = calcVector(vertexes[index], bottom_vertexes[j], n, 1);
+					XMFLOAT3 v1 = calcVector(vertexes[index], bottom_vertexes_rev[i - j], n, 1);
+
+					unsigned short vu0 = vertexExist(v0);
+					unsigned short vu1 = vertexExist(v1);
+
+					if (vu0 == -1)
+					{
+						vu0 = vertexes.size();
+						vertexes.push_back(v0);
+					}
+					if (vu1 == -1)
+					{
+						vu1 = vertexes.size();
+						vertexes.push_back(v1);
+					}
+
+					added_vertexes_indexes.push_back(vu0);
+					added_vertexes_indexes.push_back(vu1);
+					queue.push(vu0);
+					queue.push(vu1);
+				}
+			}
 		}
 	}
 }

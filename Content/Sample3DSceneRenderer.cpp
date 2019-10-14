@@ -123,7 +123,8 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		for (int i = 0 ; i < isocahedron.vertexes.size(); i++)
 			icosahedronVerticles[i] = VertexPositionColor({ isocahedron.vertexes[i], XMFLOAT3((rand() % 20+80) / 100.0 ,(rand() % 20 + 80) / 100.0 ,(rand() % 20 + 80) / 100.0) });
 
-		const UINT vertexBufferSize = sizeof(icosahedronVerticles);
+		const unsigned long long vertexBufferSize = sizeof(icosahedronVerticles);
+		int size = sizeof(VertexPositionColor);
 
 		// Создание ресурса буфера вершин в куче по умолчанию GPU и скопировать в него данные вершины с помощью кучи передачи.
 		// Ресурс передачи не должен быть освобожден до тех пор, пока GPU не закончит его использовать.
@@ -165,7 +166,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		}
 
 		// Загрузка сетчатых индексов. Каждые три индекса представляют треугольник, который отрисовывается на экране.
-		unsigned short icosahedronIndices[10000];
+		unsigned short icosahedronIndices[5120];
 		int i = 0;
 		for (auto it = isocahedron.triangles.cbegin(); it != isocahedron.triangles.cend(); it++, i += 3)
 		{

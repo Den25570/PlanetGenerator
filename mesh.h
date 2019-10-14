@@ -15,6 +15,7 @@ public:
 	static Mesh GenerateIsocahedronMesh();
 
     void generateSubdivisions(int n);
+	void generateSubdivisions_v2(int n);
 	void normalizeVertexes(float sphereRadius);
 
 	int vertexExist(XMFLOAT3 vertex);

@@ -8,6 +8,7 @@
 namespace PlanetGen
 {
 	//2^n = SPHERE_SUBDIVISIONS_COUNT
+	const int SPHERE_SUBDIVISIONS_COUNT_DOUBLE = 4;
 	const int SPHERE_SUBDIVISIONS_COUNT = 3;
 	const float SPHERE_RADIUS = 0.8;
 
