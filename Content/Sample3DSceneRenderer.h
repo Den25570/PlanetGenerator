@@ -3,7 +3,6 @@
 #include "..\Common\DeviceResources.h"
 #include "ShaderStructures.h"
 #include "..\Common\StepTimer.h"
-#include "mesh.h"
 
 namespace PlanetGen
 {
@@ -32,9 +31,6 @@ namespace PlanetGen
 	private:
 		void LoadState();
 		void Rotate(float radians);
-
-		VertexPositionColor extractVertexes(Mesh* mesh);
-		unsigned short extractIndexes(Mesh* mesh);
 
 	private:
 		// Буферы констант должны быть выравнены до 256 байт.

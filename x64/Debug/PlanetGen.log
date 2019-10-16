@@ -1,8 +1,4 @@
-﻿  App.cpp
-  Sample3DSceneRenderer.cpp
-  PlanetGenMain.cpp
-e:\my works\planetgen\planetgen\content\sample3dscenerenderer.h(13): warning C4305: инициализация: усечение из "double" в "float" (компилируется исходный файл Content\Sample3DSceneRenderer.cpp)
-e:\my works\planetgen\planetgen\content\sample3dscenerenderer.h(13): warning C4305: инициализация: усечение из "double" в "float" (компилируется исходный файл App.cpp)
-e:\my works\planetgen\planetgen\content\sample3dscenerenderer.h(13): warning C4305: инициализация: усечение из "double" в "float" (компилируется исходный файл PlanetGenMain.cpp)
-e:\my works\planetgen\planetgen\content\sample3dscenerenderer.cpp(124): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
+﻿  Sample3DSceneRenderer.cpp
+e:\my works\planetgen\planetgen\content\sample3dscenerenderer.h(12): warning C4305: инициализация: усечение из "double" в "float"
+e:\my works\planetgen\planetgen\content\sample3dscenerenderer.cpp(126): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
   PlanetGen.vcxproj -> E:\My Works\PlanetGen\x64\Debug\PlanetGen\PlanetGen.exe

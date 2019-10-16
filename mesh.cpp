@@ -14,20 +14,20 @@ Mesh Mesh::GenerateIsocahedronMesh()
 
 	icosahedron.vertexes =
 	{
-		 XMFLOAT3(0, +dv, +du),
-		 XMFLOAT3(0, +dv, -du),
-		 XMFLOAT3(0, -dv, +du),
-		 XMFLOAT3(0, -dv, -du),
+		 Vector3(0, +dv, +du),
+		 Vector3(0, +dv, -du),
+		 Vector3(0, -dv, +du),
+		 Vector3(0, -dv, -du),
 
-		 XMFLOAT3(+du, 0, +dv),
-		 XMFLOAT3(-du, 0, +dv),
-		 XMFLOAT3(+du, 0, -dv),
-		 XMFLOAT3(-du, 0, -dv),
+		 Vector3(+du, 0, +dv),
+		 Vector3(-du, 0, +dv),
+		 Vector3(+du, 0, -dv),
+		 Vector3(-du, 0, -dv),
 
-		 XMFLOAT3(+dv, +du, 0),
-		 XMFLOAT3(+dv, -du, 0),
-		 XMFLOAT3(-dv, +du, 0),
-		 XMFLOAT3(-dv, -du, 0),
+		 Vector3(+dv, +du, 0),
+		 Vector3(+dv, -du, 0),
+		 Vector3(-dv, +du, 0),
+		 Vector3(-dv, -du, 0),
 	};
 
 	icosahedron.triangles =
@@ -57,7 +57,8 @@ Mesh Mesh::GenerateIsocahedronMesh()
 	return icosahedron;
 }
 
-void Mesh::generateSubdivisions(int n)
+//Рекурсивное подразделение треугольников исокаэдра
+void Mesh::generateSubdivisions_recursive(int n)
 {
 	for (int i = 0; i < n; i++)
 	{
@@ -66,102 +67,92 @@ void Mesh::generateSubdivisions(int n)
 
 		for (auto it = triangles.begin(); j < end; it++, j++)
 		{
-			XMFLOAT3 v0 = vertexes[(*it)[0]];
-			XMFLOAT3 v1 =  vertexes[(*it)[1]];
-			XMFLOAT3 v2 =  vertexes[(*it)[2]];
+			Vector3 v0 = vertexes[(*it)[0]];
+			Vector3 v1 =  vertexes[(*it)[1]];
+			Vector3 v2 =  vertexes[(*it)[2]];
 
-			XMFLOAT3 v3 = XMFLOAT3((v0.x + v1.x)* 0.5f, (v0.y + v1.y)* 0.5f, (v0.z + v1.z)* 0.5f);
-			XMFLOAT3 v4 = XMFLOAT3((v1.x + v2.x)* 0.5f, (v1.y + v2.y)* 0.5f, (v1.z + v2.z)* 0.5f);
-			XMFLOAT3 v5 = XMFLOAT3((v0.x + v2.x)* 0.5f, (v0.y + v2.y)* 0.5f, (v0.z + v2.z)* 0.5f);
+			//Создание новых вершин, если уже существует, то использовать имеющуюся
+			Vector3 v3 = Vector3((v0.x + v1.x)* 0.5f, (v0.y + v1.y)* 0.5f, (v0.z + v1.z)* 0.5f);
+			Vector3 v4 = Vector3((v1.x + v2.x)* 0.5f, (v1.y + v2.y)* 0.5f, (v1.z + v2.z)* 0.5f);
+			Vector3 v5 = Vector3((v0.x + v2.x)* 0.5f, (v0.y + v2.y)* 0.5f, (v0.z + v2.z)* 0.5f);
 
-		     short ver3 = vertexExist(v3);
-			 short ver4 = vertexExist(v4);
-			 short ver5 = vertexExist(v5);
+			int vu3 = checkAndAddVertex(&vertexes, v3);
+			int vu4 = checkAndAddVertex(&vertexes, v4);
+			int vu5 = checkAndAddVertex(&vertexes, v5);
 
-			if (ver3 == -1)
-			{
-				ver3 =  vertexes.size();
-				 vertexes.push_back(v3);
-			}
-			if (ver4 == -1)
-			{
-				ver4 =  vertexes.size();
-				 vertexes.push_back(v4);
-			}
-			if (ver5 == -1)
-			{
-				ver5 =  vertexes.size();
-				 vertexes.push_back(v5);
-			}
-
-			triangles.push_back({ static_cast<unsigned short>(ver4), (*it)[2], static_cast<unsigned short>(ver5) });
-		    triangles.push_back({ static_cast<unsigned short>(ver3), (*it)[1], static_cast<unsigned short>(ver4) });			 
-		    triangles.push_back({ static_cast<unsigned short>(ver3), static_cast<unsigned short>(ver4), static_cast<unsigned short>(ver5) });	
-			*it = std::vector<unsigned short>{ (*it)[0], static_cast<unsigned short>(ver3), static_cast<unsigned short>(ver5) };
+			//Добавление новых треугольников
+			triangles.push_back({ static_cast<unsigned short>(vu4), (*it)[2], static_cast<unsigned short>(vu5) });
+		    triangles.push_back({ static_cast<unsigned short>(vu3), (*it)[1], static_cast<unsigned short>(vu4) });
+		    triangles.push_back({ static_cast<unsigned short>(vu3), static_cast<unsigned short>(vu4), static_cast<unsigned short>(vu5) });
+			*it = std::vector<unsigned short>{ (*it)[0], static_cast<unsigned short>(vu3), static_cast<unsigned short>(vu5) };
 		}
 	}
 }
 
-XMFLOAT3 calcVector(XMFLOAT3 v0, XMFLOAT3 v1, int length, int multiplier)
+// Нерекурсивное подразделение треугольников исокаэдра n > 1
+void Mesh::generateSubdivisions_nonRecursive(int n)
 {
-	return XMFLOAT3(v0.x + abs(v0.x - v1.x)/length* multiplier, v0.y + abs(v0.y - v1.y)/length * multiplier, v0.z + abs(v0.z - v1.z)/length * multiplier);
-}
+	int j = 0;
+	int size = triangles.size();
 
-void Mesh::generateSubdivisions_v2(int n)
-{
-	for (int i = 1; i <= n; i++)
+	for (auto it = triangles.begin(); j < size; it++, j++)
 	{
+		std::queue<unsigned short> queue;
+		std::vector<Vector3> bottom_vertexes;
+		std::vector<Vector3> bottom_vertexes_rev;
+
+		float Len = Vector3::length(vertexes[(*it)[0]] - vertexes[(*it)[1]]) / n;
+
+		//Вектор дополнительных точек треугольника
+		bottom_vertexes.push_back(vertexes[(*it)[1]]);
+		for (int i = 1; i < n; i++)
+			bottom_vertexes.push_back(Vector3::calcVector(vertexes[(*it)[1]], vertexes[(*it)[2]], Len*i));
+		bottom_vertexes.push_back(vertexes[(*it)[2]]);
+
+		bottom_vertexes_rev = bottom_vertexes;
+		std::reverse(bottom_vertexes_rev.begin(), bottom_vertexes_rev.end());
+
+		std::vector<unsigned short> added_vertexes_indexes_prev{ (*it)[0] };
+
 		int j = 0;
-		int size = triangles.size();
-
-		for (auto it = triangles.begin(); j < size; it++, j++)
+		queue.push((*it)[0]);
+		for (int i = 0; i < n; i++)
 		{
-			std::queue<unsigned short> queue;			
-			std::vector<XMFLOAT3> bottom_vertexes;
-			std::vector<XMFLOAT3> bottom_vertexes_rev;
-
-			bottom_vertexes.push_back(vertexes[(*it)[1]]);
-			for (int i = 1; i < n; i++)
-				bottom_vertexes.push_back(calcVector(vertexes[(*it)[1]], vertexes[(*it)[2]], n,i));
-			bottom_vertexes.push_back(vertexes[(*it)[2]]);
-
-			bottom_vertexes_rev = bottom_vertexes;
-			bottom_vertexes_rev.reserve(bottom_vertexes_rev.size());
-
-			int j = 0;
-			queue.push((*it)[0]);
-			for (int i = 0; i < n; i++)
+			std::vector<unsigned short> added_vertexes_indexes;
+			for (int j = 0; j <= i; j++)
 			{
-				std::vector<unsigned short> added_vertexes_indexes;
-				for (int j = 0; j <= i; j++)
-				{
-					unsigned short index = queue.front;
-					queue.pop();
+				//Создание новой пары вершин
+				unsigned short index = queue.front();
+				queue.pop();
 
-					XMFLOAT3 v0 = calcVector(vertexes[index], bottom_vertexes[j], n, 1);
-					XMFLOAT3 v1 = calcVector(vertexes[index], bottom_vertexes_rev[i - j], n, 1);
+				Vector3 v0 = Vector3::calcVector(vertexes[index], bottom_vertexes[j], Len);
+				Vector3 v1 = Vector3::calcVector(vertexes[index], bottom_vertexes_rev[i - j], Len);
 
-					unsigned short vu0 = vertexExist(v0);
-					unsigned short vu1 = vertexExist(v1);
+				int vu0 = checkAndAddVertex(&vertexes, v0);
+				int vu1 = checkAndAddVertex(&vertexes, v1);
 
-					if (vu0 == -1)
-					{
-						vu0 = vertexes.size();
-						vertexes.push_back(v0);
-					}
-					if (vu1 == -1)
-					{
-						vu1 = vertexes.size();
-						vertexes.push_back(v1);
-					}
-
-					added_vertexes_indexes.push_back(vu0);
-					added_vertexes_indexes.push_back(vu1);
-					queue.push(vu0);
-					queue.push(vu1);
-				}
+				//Добавление новых вершин в очередь
+				if (std::find(added_vertexes_indexes.begin(), added_vertexes_indexes.end(), vu0) == added_vertexes_indexes.end()) { added_vertexes_indexes.push_back(static_cast<unsigned short>(vu0)); queue.push(vu0); }
+				if (std::find(added_vertexes_indexes.begin(), added_vertexes_indexes.end(), vu1) == added_vertexes_indexes.end()) { added_vertexes_indexes.push_back(static_cast<unsigned short>(vu1)); queue.push(vu1);}
+					
 			}
+
+			//Создание новых треугольников
+			int vertex_arr_size = added_vertexes_indexes_prev.size();
+			for (int j = 0; j < vertex_arr_size; j++)
+			{
+				triangles.push_back({ added_vertexes_indexes_prev[j],added_vertexes_indexes[j],added_vertexes_indexes[j+1]});
+				if (j < vertex_arr_size - 1)
+					triangles.push_back({ added_vertexes_indexes_prev[j+1],added_vertexes_indexes_prev[j],added_vertexes_indexes[j + 1] });
+				//Замена предыдущих добавленных вершин на текущие
+				added_vertexes_indexes_prev[j] = added_vertexes_indexes[j];
+			}
+			//Вектор предыдущих вершин должен быть на одну больше 
+			added_vertexes_indexes_prev.push_back(added_vertexes_indexes[vertex_arr_size]);
 		}
+		//Заменяем данные текущего треугольника последним сгенерированным
+		*it = triangles.back();
+		triangles.pop_back();
 	}
 }
 
@@ -176,20 +167,31 @@ void Mesh::normalizeVertexes(float sphereRadius)
 	}
 }
 
-int Mesh::vertexExist(XMFLOAT3 vertex)
+int checkAndAddVertex(std::vector<Vector3> *vertexes, Vector3 vertex)
 {
-	for (int i = 0; i < vertexes.size(); i++)
+	int vu = vertexExist(vertexes, vertex);
+	if (vu == -1)
 	{
-		if (compareF(vertexes[i].x, vertex.x) && compareF(vertexes[i].y, vertex.y) && compareF(vertexes[i].z, vertex.z))
+		vu = vertexes->size();
+		vertexes->push_back(vertex);
+	}
+	return vu;
+}
+
+int vertexExist(std::vector<Vector3> *vertexes, Vector3 vertex)
+{
+	for (int i = 0; i < vertexes->size(); i++)
+	{
+		if (compareF((*vertexes)[i].x, vertex.x) && compareF((*vertexes)[i].y, vertex.y) && compareF((*vertexes)[i].z, vertex.z))
 			return i;
 	}
 	return -1;
 }
 
-int Mesh::triangleExist(std::vector<unsigned short> triangle)
+int triangleExist(std::list<std::vector<unsigned short>> *triangles, std::vector<unsigned short> triangle)
 {
 	int i = 0;
-	for (auto it = triangles.cbegin(); it != triangles.cend(); it++, i++)
+	for (auto it = triangles->cbegin(); it != triangles->cend(); it++, i++)
 	{
 		if ((*it)[0] == triangle[0] && (*it)[1] == triangle[1] && (*it)[2] == triangle[2])
 			return i;

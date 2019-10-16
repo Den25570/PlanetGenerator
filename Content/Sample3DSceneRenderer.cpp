@@ -4,6 +4,8 @@
 #include "..\Common\DirectXHelper.h"
 #include <ppltasks.h>
 #include <synchapi.h>
+#include "mesh.h"
+#include "../Content/Math.h"
 
 using namespace PlanetGen;
 
@@ -20,7 +22,7 @@ Platform::String^ TrackingKey = "Tracking";
 // Загружает шейдеры вершин и пикселей из файлов и создает геометрию куба.
 Sample3DSceneRenderer::Sample3DSceneRenderer(const std::shared_ptr<DX::DeviceResources>& deviceResources) :
 	m_loadingComplete(false),
-	m_radiansPerSecond(XM_PIDIV4),	// вращать на 45 градусов в секунду
+	m_radiansPerSecond(XM_PIDIV4/2),	// вращать на 45 градусов в секунду
 	m_angle(0),
 	m_tracking(false),
 	m_mappedConstantBuffer(nullptr),
@@ -117,11 +119,11 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		NAME_D3D12_OBJECT(m_commandList);
 
 		Mesh isocahedron = Mesh::GenerateIsocahedronMesh();
-		isocahedron.generateSubdivisions(SPHERE_SUBDIVISIONS_COUNT);
+		isocahedron.generateSubdivisions_nonRecursive(12);		
 		isocahedron.normalizeVertexes(SPHERE_RADIUS);
-		VertexPositionColor icosahedronVerticles[2562];	
+		VertexPositionColor icosahedronVerticles[1442];	
 		for (int i = 0 ; i < isocahedron.vertexes.size(); i++)
-			icosahedronVerticles[i] = VertexPositionColor({ isocahedron.vertexes[i], XMFLOAT3((rand() % 20+80) / 100.0 ,(rand() % 20 + 80) / 100.0 ,(rand() % 20 + 80) / 100.0) });
+			icosahedronVerticles[i] = VertexPositionColor({ isocahedron.vertexes[i].convertToXMFLOAT3(), XMFLOAT3((rand() % 100) / 100.0 ,(rand() % 100) / 100.0 ,(rand() % 100) / 100.0) });
 
 		const unsigned long long vertexBufferSize = sizeof(icosahedronVerticles);
 		int size = sizeof(VertexPositionColor);
@@ -166,7 +168,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 		}
 
 		// Загрузка сетчатых индексов. Каждые три индекса представляют треугольник, который отрисовывается на экране.
-		unsigned short icosahedronIndices[5120];
+		unsigned short icosahedronIndices[8640];
 		int i = 0;
 		for (auto it = isocahedron.triangles.cbegin(); it != isocahedron.triangles.cend(); it++, i += 3)
 		{

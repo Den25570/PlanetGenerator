@@ -60,40 +60,43 @@
     <ClCompile Include="mesh.cpp">
       <Filter>Ресурсы\Math</Filter>
     </ClCompile>
-    <ClCompile Include="Content\PlanetGen\Math.cpp">
+    <ClCompile Include="PlanetData.cpp">
+      <Filter>Ресурсы\PlanetData</Filter>
+    </ClCompile>
+    <ClCompile Include="Content\Math.cpp">
       <Filter>Ресурсы\Math</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
     <ClInclude Include="PlanetGenMain.h" />
-    <ClInclude Include="Content\PlanetGen\Delanuay.h">
-      <Filter>Ресурсы\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Content\PlanetGen\Voronoi.h">
-      <Filter>Ресурсы\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Content\PlanetGen\PlanetData.h">
-      <Filter>Ресурсы\PlanetData</Filter>
-    </ClInclude>
-    <ClInclude Include="Content\PlanetGen\Plates.h">
-      <Filter>Ресурсы\PlanetData</Filter>
-    </ClInclude>
     <ClInclude Include="pch.h">
       <Filter>Ресурсы\Compiler/Directx</Filter>
     </ClInclude>
     <ClInclude Include="mesh.h">
       <Filter>Ресурсы\Math</Filter>
     </ClInclude>
-    <ClInclude Include="Content\PlanetGen\Math.h">
+    <ClInclude Include="Content\Delanuay.h">
       <Filter>Ресурсы\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Content\Math.h">
+      <Filter>Ресурсы\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Content\Voronoi.h">
+      <Filter>Ресурсы\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Content\PlanetData.h">
+      <Filter>Ресурсы\PlanetData</Filter>
+    </ClInclude>
+    <ClInclude Include="Content\Plates.h">
+      <Filter>Ресурсы\PlanetData</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Content\PlanetGen\PlanetGen.vcxproj">
+    <None Include="PlanetGen_TemporaryKey.pfx">
       <Filter>Ресурсы\Compiler/Directx</Filter>
     </None>
-    <None Include="PlanetGen_TemporaryKey.pfx">
+    <None Include="Content\PlanetGen.vcxproj">
       <Filter>Ресурсы\Compiler/Directx</Filter>
     </None>
   </ItemGroup>
