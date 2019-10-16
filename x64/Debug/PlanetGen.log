@@ -1,4 +1,13 @@
-﻿  Sample3DSceneRenderer.cpp
-e:\my works\planetgen\planetgen\content\sample3dscenerenderer.h(12): warning C4305: инициализация: усечение из "double" в "float"
+﻿  Math.cpp
+  Sample3DSceneRenderer.cpp
+  PlanetData.cpp
+  mesh.cpp
+e:\my works\planetgen\planetgen\mesh.cpp(9): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+e:\my works\planetgen\planetgen\mesh.cpp(10): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+e:\my works\planetgen\planetgen\mesh.cpp(66): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+e:\my works\planetgen\planetgen\content\sample3dscenerenderer.h(12): warning C4305: инициализация: усечение из "double" в "float" (компилируется исходный файл Content\Sample3DSceneRenderer.cpp)
+e:\my works\planetgen\planetgen\mesh.cpp(96): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+e:\my works\planetgen\planetgen\mesh.cpp(141): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+e:\my works\planetgen\planetgen\mesh.cpp(175): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
 e:\my works\planetgen\planetgen\content\sample3dscenerenderer.cpp(126): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
   PlanetGen.vcxproj -> E:\My Works\PlanetGen\x64\Debug\PlanetGen\PlanetGen.exe
