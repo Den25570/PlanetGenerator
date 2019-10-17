@@ -6,38 +6,55 @@
 class Triangulation
 {
 public:
-	std::vector<DelanuayPoint> points;
-	std::vector<DelanuayEdge> edges;
+	std::vector<DNode> points;
+	std::vector<DTriangle> triangles;
 
-	static void generateTriangulation_2D(Triangulation *triangulation, std::vector<Vector3> _points);
+	static void generateTriangulation2(Triangulation *triangulation, std::vector<Vector3> _points);
 private:
     void InitializePoints(std::vector<Vector3> _points);
-	void SortPointsByX(int start, int end);
+	void SortPointsByX(std::vector<DNode>* nodes, int start, int end);
+
+	std::vector<std::vector<DNode*>>* DevideNodes();
 };
 
-class DelanuayPoint
+class DEdge
 {
 public:
-	Vector3 position;
-	std::vector<DelanuayEdge*> edges;
+	DNode *nodes[2];
+	std::vector<DTriangle*> triangles[2];
 
-	inline DelanuayPoint(void) {};
-	inline DelanuayPoint(Vector3 _position)
+	inline DEdge(DNode* n0, DNode* n1)
 	{
-		position = _position;
+		nodes[0] = n0;
+		nodes[1] = n1;
 	};
 };
 
-class DelanuayEdge
+class DTriangle
 {
 public:
-	DelanuayPoint* start;
-	DelanuayPoint* end;
+	DEdge *edges[3];
 
-	inline DelanuayEdge(void) {};
-	inline DelanuayEdge(DelanuayPoint* p0, DelanuayPoint* p1) 
+	float x_c;
+	float y_c;
+	float radius_sqr;
+
+	inline void calcCircum();
+
+	inline DTriangle(DEdge* e0, DEdge* e1, DEdge* e2)
 	{
-		start = p0;
-		end = p1;
+		e0->triangles->push_back(this); edges[0] = e0;
+		e1->triangles->push_back(this); edges[1] = e1;
+		e2->triangles->push_back(this); edges[2] = e2;
+	};
+};
+
+class DNode
+{
+public:
+	Vector3 position;
+	inline DNode(Vector3 _position)
+	{
+		position = _position;
 	};
 };

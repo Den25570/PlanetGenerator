@@ -75,3 +75,33 @@ bool compareD(const double num_1, const double num_2, const double eps)
 {
 	return abs(num_1 - num_2) < eps;
 }
+
+float mDeterminant3(std::vector<float> e)
+{
+	return (e[0] * e[4] * e[8] + e[2] * e[3] * e[7] + e[1] * e[5] * e[6]) -
+		(e[2] * e[4] * e[6] + e[0] * e[7] * e[5] + e[1] * e[3] * e[8]);
+}
+
+inline float vectorMult2(Vector3 v0, Vector3 v1)
+{
+	return v0.x*v1.y - v0.y*v1.x;
+}
+
+inline bool vectorCollision(Vector3 v11, Vector3 v12, Vector3 v21, Vector3 v22)
+{
+	Vector3 cut1 = (v12 - v11);
+	Vector3 cut2 = (v22 - v21);
+
+	float Z1 = vectorMult2(cut1, (v21 - v11));
+	float Z2 = vectorMult2(cut1, (v22 - v11));
+	
+	if (sgn(Z1) == sgn(Z2) || (Z1 == 0) || (Z2 == 0)) 
+	     return false;
+	
+	float Z1 = vectorMult2(cut2, (v11 - v21));
+	float Z2 = vectorMult2(cut2, (v12 - v21));
+	
+	if (sgn(Z1) == sgn(Z2) || (Z1 == 0) || (Z2 == 0))
+		return false;
+	return true;
+}

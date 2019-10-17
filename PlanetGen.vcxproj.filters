@@ -66,6 +66,9 @@
     <ClCompile Include="Content\Math.cpp">
       <Filter>Ресурсы\Math</Filter>
     </ClCompile>
+    <ClCompile Include="Delanuay.cpp">
+      <Filter>Ресурсы\Math</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />

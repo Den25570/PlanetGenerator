@@ -264,6 +264,7 @@
     <ClCompile Include="App.cpp" />
     <ClCompile Include="Common\DeviceResources.cpp" />
     <ClCompile Include="Content\Math.cpp" />
+    <ClCompile Include="Delanuay.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="PlanetData.cpp" />
     <ClCompile Include="PlanetGenMain.cpp" />
