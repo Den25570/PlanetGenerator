@@ -2,18 +2,18 @@
 #include "../Content/Delanuay.h"
 #include <stack>
 
-void Triangulation::generateTriangulation2(Triangulation *triangulation, std::vector<Vector3> _points)
+void Triangulation::generateTriangulation2(std::vector<Vector3> _points)
 {
 	std::vector<DEdge*> minConvexHull;
 	std::stack<DEdge*> obsEdges;
 
-	triangulation->InitializePoints(_points);
-	triangulation->SortPointsByX(&(triangulation->points), 0, triangulation->points.size() - 1);
+	InitializePoints(_points);
+	SortPointsByX(&points, 0, points.size() - 1);
 	
 	//Создание первого треугольника и рёбер в МВО
-	DEdge* e1 = new DEdge(&(triangulation->points[0]), &(triangulation->points[1]));
-	DEdge* e2 = new DEdge(&(triangulation->points[1]), &(triangulation->points[2]));
-	DEdge* e3 = new DEdge(&(triangulation->points[2]), &(triangulation->points[0]));
+	DEdge* e1 = new DEdge(&points[0], &points[1]);
+	DEdge* e2 = new DEdge(&points[1], &points[2]);
+	DEdge* e3 = new DEdge(&points[2], &points[0]);
 
 	minConvexHull.push_back(e1);
 	minConvexHull.push_back(e2);
@@ -21,48 +21,77 @@ void Triangulation::generateTriangulation2(Triangulation *triangulation, std::ve
 
 	DTriangle t = DTriangle(e1, e2, e3);
 	t.calcCircum();
-	triangulation->triangles.push_back(t);
-
+	triangles.push_back(t);
 
 	//Добавление новых точек
 	int last_add_index = 2;
-	for (int i = 3; i < triangulation->points.size(); i++)
+	std::vector<int> positions(2);
+
+	for (int i = 3; i < points.size(); i++)
 	{
-		int start, end;
-		bool visible = true;
-		//Поиск видимых рёбер справа
-		for (int j = last_add_index; j < minConvexHull.size(), visible; j++)
+		positions = getObsEdges(&minConvexHull, &obsEdges, i, last_add_index);
+
+		for (DEdge* curr_edge = obsEdges.top(); !obsEdges.empty(); obsEdges.pop(), curr_edge = obsEdges.top())
 		{
-			for (auto it = minConvexHull.begin(); it != minConvexHull.end(); it++)
+			auto t = curr_edge->triangles.front();
+			float radius = t->radius_c;
+			float dist = Vector3::length(points[i].position - t->circle_pos);
+
+			if (dist < radius)
 			{
-				if (*it == minConvexHull[j])
-					continue;
-				visible &= vectorCollision((*it)->nodes[0]->position, (*it)->nodes[1]->position, triangulation->points[i].position, minConvexHull[j]->nodes[0]->position);
-				visible &= vectorCollision((*it)->nodes[0]->position, (*it)->nodes[1]->position, triangulation->points[i].position, minConvexHull[j]->nodes[1]->position);	
-				if (!visible)
-					break;
+				for (int j = 0; j < 3; j++)
+					if (t->edges[j] != curr_edge)
+						obsEdges.push(t->edges[j]);
 			}
-			if (visible)
-				obsEdges.push(minConvexHull[j]);
 		}
-		//Поиск видимых рёбер слева
-		visible = true;
-		for (int j = last_add_index-1; j >= 0, visible; j++)
-		{
-			for (auto it = minConvexHull.begin(); it != minConvexHull.end(); it++)
-			{
-				if (*it == minConvexHull[j])
-					continue;
-				visible &= vectorCollision((*it)->nodes[0]->position, (*it)->nodes[1]->position, triangulation->points[i].position, minConvexHull[j]->nodes[0]->position);
-				visible &= vectorCollision((*it)->nodes[0]->position, (*it)->nodes[1]->position, triangulation->points[i].position, minConvexHull[j]->nodes[1]->position);
-				if (!visible)
-					break;
-			}
-			if (visible)
-				obsEdges.push(minConvexHull[j]);
-		}
-	
+
+
 	}
+}
+
+std::vector<int> Triangulation::getObsEdges(std::vector<DEdge *> *minConvexHull, std::stack<DEdge *> *obsEdges, int index, int last_add_index)
+{
+	bool visible = true;
+	//Поиск видимых рёбер справа
+	int end_pos_r = last_add_index;
+	for (int j = last_add_index; j < minConvexHull->size(), visible; j++, end_pos_r++)
+	{
+		for (auto it = minConvexHull->begin(); it != minConvexHull->end(); it++)
+		{
+			if (*it == (*minConvexHull)[j])
+				continue;
+			visible &= vectorCollision((*it)->nodes[0]->position, (*it)->nodes[1]->position, points[index].position, (*minConvexHull)[j]->nodes[0]->position);
+			visible &= vectorCollision((*it)->nodes[0]->position, (*it)->nodes[1]->position, points[index].position, (*minConvexHull)[j]->nodes[1]->position);
+			if (!visible)
+				break;
+		}
+		if (visible)
+		{
+			obsEdges->push((*minConvexHull)[j]);
+			end_pos_r++;
+		}
+	}
+	//Поиск видимых рёбер слева
+	visible = true;
+	int end_pos_l = last_add_index - 1;
+	for (int j = last_add_index - 1; j >= 0, visible; j--)
+	{
+		for (auto it = minConvexHull->begin(); it != minConvexHull->end(); it++)
+		{
+			if (*it == (*minConvexHull)[j])
+				continue;
+			visible &= vectorCollision((*it)->nodes[0]->position, (*it)->nodes[1]->position, points[index].position, (*minConvexHull)[j]->nodes[0]->position);
+			visible &= vectorCollision((*it)->nodes[0]->position, (*it)->nodes[1]->position, points[index].position, (*minConvexHull)[j]->nodes[1]->position);
+			if (!visible)
+				break;
+		}
+		if (visible)
+		{
+			obsEdges->push((*minConvexHull)[j]);
+			end_pos_l--;
+		}
+	}
+	return std::vector<int>{end_pos_l, end_pos_r};
 }
 
 void Triangulation::InitializePoints(std::vector<Vector3> _points)
@@ -110,10 +139,11 @@ void DTriangle::calcCircum()
 	float c = mDeterminant3({ x1*x1 + y1 * y1,x1,1,x2*x2 + y2 * y2,x2,1 ,x3*x3 + y3 * y3,x3,1 });
   //float d = mDeterminant3({ x1*x1 + y1 * y1,x1,y1,x2*x2 + y2 * y2,x2,y2 ,x3*x3 + y3 * y3,x3,y3 });
 	
-	x_c = b / (2 * a);
-	y_c = -c / (2 * a);
+	circle_pos.x = b / (2 * a);
+	circle_pos.y = -c / (2 * a);
+	circle_pos.z = 0;
   //radius_c = sqrtf((b*b+c*c-4*a*d)/(4*a*a));
-	radius_sqr = (x_c - x1)*(x_c - x1) + (y_c - y1)*(y_c - y1);
+	radius_c = Vector3::length(circle_pos - Vector3(x1,y1,0));
 }
 
 std::vector<std::vector<DNode*>>* Triangulation::DevideNodes()
@@ -145,6 +175,14 @@ std::vector<std::vector<DNode*>>* Triangulation::DevideNodes()
 		result[(it->position.x - min_x) / (a / m)].push_back(&(*it));
 
 	return &result;
+}
+
+int DEdge::getTriangleIndex(DTriangle* t)
+{
+	if (triangles[0] == t)
+		return 0;
+	else
+		return 1;
 }
 
 
