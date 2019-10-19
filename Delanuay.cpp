@@ -8,7 +8,7 @@ void Triangulation::generateTriangulation2(std::vector<Vector3> _points)
 	std::stack<DEdge*> obsEdges;
 
 	InitializePoints(_points);
-	SortPointsByX(&points, 0, points.size() - 1);
+	SortPointsByX(0, points.size() - 1);
 	
 	//Создание первого треугольника и рёбер в МВО
 	DEdge* e1 = new DEdge(&points[0], &points[1]);
@@ -19,17 +19,15 @@ void Triangulation::generateTriangulation2(std::vector<Vector3> _points)
 	minConvexHull.push_back(e2);
 	minConvexHull.push_back(e3);
 
-	DTriangle t = DTriangle(e1, e2, e3);
-	t.calcCircum();
-	triangles.push_back(t);
+	AddNewTriangle(e1, e2, e3);
 
 	//Добавление новых точек
 	int last_add_index = 2;
-	std::vector<int> positions(2);
 
 	for (int i = 3; i < points.size(); i++)
 	{
-		positions = getObsEdges(&minConvexHull, &obsEdges, i, last_add_index);
+		e1 = NULL; e2 = NULL; e3 = NULL;
+		getObsEdges(&minConvexHull, &obsEdges, i, last_add_index);
 
 		for (DEdge* curr_edge = obsEdges.top(); !obsEdges.empty(); obsEdges.pop(), curr_edge = obsEdges.top())
 		{
@@ -42,20 +40,41 @@ void Triangulation::generateTriangulation2(std::vector<Vector3> _points)
 				for (int j = 0; j < 3; j++)
 					if (t->edges[j] != curr_edge)
 						obsEdges.push(t->edges[j]);
+				delete t;
+				delete curr_edge;
 			}
+			else
+			{
+				if (e1 == NULL)
+				{
+					e1 = new DEdge(&points[0], &points[i]);
+					e2 = new DEdge(&points[i], &points[1]);
+					e3 = curr_edge;
+				}
+				else
+				{
+
+				}
+				AddNewTriangle(e1, e2, e3);
+			}
+								
 		}
-
-
 	}
 }
 
-std::vector<int> Triangulation::getObsEdges(std::vector<DEdge *> *minConvexHull, std::stack<DEdge *> *obsEdges, int index, int last_add_index)
+DTriangle* Triangulation::AddNewTriangle(DEdge * e1, DEdge * e2, DEdge * e3)
 {
-	bool visible = true;
-	//Поиск видимых рёбер справа
-	int end_pos_r = last_add_index;
-	for (int j = last_add_index; j < minConvexHull->size(), visible; j++, end_pos_r++)
+	DTriangle* t = new DTriangle(e1, e2, e3);
+	t->calcCircum();
+	triangles.push_back(t);
+	return t;
+}
+
+void Triangulation::getObsEdges(std::vector<DEdge *> *minConvexHull, std::stack<DEdge *> *obsEdges, int index, int last_add_index)
+{
+	for (int j = last_add_index; j < minConvexHull->size(); j++)
 	{
+		bool visible = true;
 		for (auto it = minConvexHull->begin(); it != minConvexHull->end(); it++)
 		{
 			if (*it == (*minConvexHull)[j])
@@ -66,32 +85,8 @@ std::vector<int> Triangulation::getObsEdges(std::vector<DEdge *> *minConvexHull,
 				break;
 		}
 		if (visible)
-		{
 			obsEdges->push((*minConvexHull)[j]);
-			end_pos_r++;
-		}
 	}
-	//Поиск видимых рёбер слева
-	visible = true;
-	int end_pos_l = last_add_index - 1;
-	for (int j = last_add_index - 1; j >= 0, visible; j--)
-	{
-		for (auto it = minConvexHull->begin(); it != minConvexHull->end(); it++)
-		{
-			if (*it == (*minConvexHull)[j])
-				continue;
-			visible &= vectorCollision((*it)->nodes[0]->position, (*it)->nodes[1]->position, points[index].position, (*minConvexHull)[j]->nodes[0]->position);
-			visible &= vectorCollision((*it)->nodes[0]->position, (*it)->nodes[1]->position, points[index].position, (*minConvexHull)[j]->nodes[1]->position);
-			if (!visible)
-				break;
-		}
-		if (visible)
-		{
-			obsEdges->push((*minConvexHull)[j]);
-			end_pos_l--;
-		}
-	}
-	return std::vector<int>{end_pos_l, end_pos_r};
 }
 
 void Triangulation::InitializePoints(std::vector<Vector3> _points)
@@ -101,7 +96,7 @@ void Triangulation::InitializePoints(std::vector<Vector3> _points)
 		points.push_back(DNode(*it));
 }
 
-void Triangulation::SortPointsByX(std::vector<DNode>* nodes, int start, int end)
+void Triangulation::SortPointsByX(int start, int end)
 {
 	if (start < end)
 	{
@@ -122,8 +117,8 @@ void Triangulation::SortPointsByX(std::vector<DNode>* nodes, int start, int end)
 		points[end] = points[P_index];
 		points[P_index] = temp;
 
-		SortPointsByX(nodes, start, P_index - 1);
-		SortPointsByX(nodes, P_index + 1, end);
+		SortPointsByX(start, P_index - 1);
+		SortPointsByX(P_index + 1, end);
 	}
 }
 
@@ -179,10 +174,10 @@ std::vector<std::vector<DNode*>>* Triangulation::DevideNodes()
 
 int DEdge::getTriangleIndex(DTriangle* t)
 {
-	if (triangles[0] == t)
-		return 0;
-	else
-		return 1;
+	for (int i = 0; i < triangles.size(); i++)
+		if (triangles[i] == t)
+			return i;
+	return -1;
 }
 
 
