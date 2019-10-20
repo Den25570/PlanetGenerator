@@ -26,7 +26,6 @@ void Triangulation::generateTriangulation2(std::vector<Vector3> _points)
 
 	for (int i = 3; i < points.size(); i++)
 	{
-		e1 = NULL; e2 = NULL; e3 = NULL;
 		getObsEdges(&minConvexHull, &obsEdges, i, last_add_index);
 
 		for (DEdge* curr_edge = obsEdges.top(); !obsEdges.empty(); obsEdges.pop(), curr_edge = obsEdges.top())
@@ -45,16 +44,9 @@ void Triangulation::generateTriangulation2(std::vector<Vector3> _points)
 			}
 			else
 			{
-				if (e1 == NULL)
-				{
-					e1 = new DEdge(&points[0], &points[i]);
-					e2 = new DEdge(&points[i], &points[1]);
-					e3 = curr_edge;
-				}
-				else
-				{
-
-				}
+				e1 = new DEdge(&points[0], &points[i]);
+				e2 = new DEdge(&points[i], &points[1]);
+				e3 = curr_edge;
 				AddNewTriangle(e1, e2, e3);
 			}
 								

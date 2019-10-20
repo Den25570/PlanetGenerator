@@ -27,6 +27,7 @@ public:
 	inline DEdge(DNode* n0, DNode* n1)
 	{
 		nodes[0] = n0; nodes[1] = n1;
+		n0->edges.push_back(this); n1->edges.push_back(this);
 	};
 
 	int getTriangleIndex(DTriangle* t);
