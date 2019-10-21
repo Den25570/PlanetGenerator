@@ -5,6 +5,7 @@
 void Triangulation::generateTriangulation2(std::vector<Vector3> _points)
 {
 	std::vector<DEdge*> minConvexHull;
+	std::vector<DEdge*> potentialMCH;
 	std::stack<DEdge*> obsEdges;
 
 	InitializePoints(_points);
@@ -19,7 +20,7 @@ void Triangulation::generateTriangulation2(std::vector<Vector3> _points)
 	minConvexHull.push_back(e2);
 	minConvexHull.push_back(e3);
 
-	AddNewTriangle(e1, e2, e3);
+	AddTriangle(e1, e2, e3);
 
 	//Добавление новых точек
 	int last_add_index = 2;
@@ -40,21 +41,55 @@ void Triangulation::generateTriangulation2(std::vector<Vector3> _points)
 					if (t->edges[j] != curr_edge)
 						obsEdges.push(t->edges[j]);
 				delete t;
+
+				//Удаление из МВО
+				auto search_res = std::find(minConvexHull.begin(), minConvexHull.end(), e3);
+				if (search_res != minConvexHull.end())
+					minConvexHull.erase(search_res);
+
 				delete curr_edge;
 			}
 			else
-			{
-				e1 = new DEdge(&points[0], &points[i]);
-				e2 = new DEdge(&points[i], &points[1]);
+			{				
+				e1 = AddEdge(&points[0], &points[i]);
+				e2 = AddEdge(&points[i], &points[1]);
 				e3 = curr_edge;
-				AddNewTriangle(e1, e2, e3);
-			}
-								
+
+				auto search_res = std::find(potentialMCH.begin(), potentialMCH.end(), e1);
+				if (search_res == potentialMCH.end())
+					potentialMCH.push_back(e1);
+				else
+					potentialMCH.erase(search_res);
+
+				auto search_res = std::find(potentialMCH.begin(), potentialMCH.end(), e2);
+				if (search_res == potentialMCH.end())
+					potentialMCH.push_back(e2);
+				else
+					potentialMCH.erase(search_res);
+
+				//Удаление из МВО
+				auto search_res = std::find(minConvexHull.begin(), minConvexHull.end(), e3);
+				if (search_res != minConvexHull.end())
+					minConvexHull.erase(search_res);
+
+				AddTriangle(AddEdge(&points[0], &points[i]), AddEdge(&points[i], &points[1]), curr_edge);
+			}										
 		}
+		minConvexHull.push_back(potentialMCH[0]);
+		minConvexHull.push_back(potentialMCH[1]);
+		potentialMCH.clear();
 	}
 }
 
-DTriangle* Triangulation::AddNewTriangle(DEdge * e1, DEdge * e2, DEdge * e3)
+DEdge* Triangulation::AddEdge(DNode* p1, DNode* p2)
+{
+	DEdge* edge = nodesConnected(p1, p2);
+	if (edge == NULL)
+		edge = new DEdge(p1, p2);
+	return edge;
+}
+
+DTriangle* Triangulation::AddTriangle(DEdge * e1, DEdge * e2, DEdge * e3)
 {
 	DTriangle* t = new DTriangle(e1, e2, e3);
 	t->calcCircum();

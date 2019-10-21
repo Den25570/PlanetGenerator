@@ -15,7 +15,8 @@ private:
 	void SortPointsByX(int start, int end);
 	void getObsEdges(std::vector<DEdge *> *minConvexHull, std::stack<DEdge *> *obsEdges, int index, int last_add_index);
 	std::vector<std::vector<DNode*>>* DevideNodes();
-	DTriangle* AddNewTriangle(DEdge * e1, DEdge * e2, DEdge * e3);
+	DTriangle* AddTriangle(DEdge * e1, DEdge * e2, DEdge * e3);
+	DEdge* AddEdge(DNode* p1, DNode* p2);
 };
 
 class DEdge
@@ -64,5 +65,25 @@ public:
 	inline DNode(Vector3 _position)
 	{
 		position = _position;
+	};
+};
+
+DEdge* nodesConnected(DNode* n1, DNode* n2)
+{
+	for (auto edge : n1->edges)
+		for (auto node : edge->nodes)
+			if (node == n2)
+				return edge;
+	return NULL;
+}
+
+struct tempMCH
+{
+	DEdge* edge;
+	bool flag;
+	inline tempMCH(DEdge* _edge, bool f)
+	{
+		edge = _edge;
+		flag = f;
 	};
 };
