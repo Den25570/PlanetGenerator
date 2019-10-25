@@ -1,22 +1,22 @@
 #pragma once
-#pragma once
 #include "Math.h"
-#include <mesh.h>
+#include <stack>
+#include <list>
 
-class Triangulation
+class DNode;
+class DEdge;
+class DTriangle;
+
+class DNode
 {
 public:
-	std::vector<DNode> points;
-	std::list<DTriangle*> triangles;
+	Vector3 position;
+	std::list<DEdge*> edges;
 
-    void generateTriangulation2(std::vector<Vector3> _points);	
-private:
-    void InitializePoints(std::vector<Vector3> _points);
-	void SortPointsByX(int start, int end);
-	void getObsEdges(std::vector<DEdge *> *minConvexHull, std::stack<DEdge *> *obsEdges, int index, int last_add_index);
-	std::vector<std::vector<DNode*>>* DevideNodes();
-	DTriangle* AddTriangle(DEdge * e1, DEdge * e2, DEdge * e3);
-	DEdge* AddEdge(DNode* p1, DNode* p2);
+	inline DNode(Vector3 _position)
+	{
+		position = _position;
+	};
 };
 
 class DEdge
@@ -31,7 +31,14 @@ public:
 		n0->edges.push_back(this); n1->edges.push_back(this);
 	};
 
+	~DEdge()
+	{
+		for (int i = 0; i < 2; i++)
+			nodes[i]->edges.remove(this);
+	}
+
 	int getTriangleIndex(DTriangle* t);
+	int getNodeIndex(DNode* n);
 };
 
 class DTriangle
@@ -49,23 +56,28 @@ public:
 		e0->triangles.push_back(this); edges[0] = e0; e1->triangles.push_back(this); edges[1] = e1; e2->triangles.push_back(this); edges[2] = e2;
 	};
 
-    ~DTriangle()
+	~DTriangle()
 	{
 		for (int i = 0; i < 3; i++)
 			edges[i]->triangles.erase(edges[i]->triangles.begin() + edges[i]->getTriangleIndex(this));
 	}
 };
 
-class DNode
+
+class Triangulation
 {
 public:
-	Vector3 position;
-	std::list<DEdge*> edges;
+	std::vector<DNode> points;
+	std::list<DTriangle*> triangles;
 
-	inline DNode(Vector3 _position)
-	{
-		position = _position;
-	};
+    void generateTriangulation2(std::vector<Vector3> _points);	
+private:
+    void InitializePoints(std::vector<Vector3> _points);
+	void SortPointsByX(int start, int end);
+	void getObsEdges(std::vector<DEdge *> *minConvexHull, std::stack<DEdge *> *obsEdges, int index, int last_add_index);
+	std::vector<std::vector<DNode*>>* DevideNodes();
+	DTriangle* AddTriangle(DEdge * e1, DEdge * e2, DEdge * e3);
+	DEdge* AddEdge(DNode* p1, DNode* p2);
 };
 
 DEdge* nodesConnected(DNode* n1, DNode* n2)
@@ -76,14 +88,3 @@ DEdge* nodesConnected(DNode* n1, DNode* n2)
 				return edge;
 	return NULL;
 }
-
-struct tempMCH
-{
-	DEdge* edge;
-	bool flag;
-	inline tempMCH(DEdge* _edge, bool f)
-	{
-		edge = _edge;
-		flag = f;
-	};
-};

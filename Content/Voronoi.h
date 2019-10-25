@@ -1,42 +1,47 @@
 #pragma once
+#include "Delanuay.h"
 
-#include "Math.h"
-#include <list>
+class Node;
+class HEdge;
+class VoronoiSite;
 
-namespace VoronoiData
+class Voronoi
 {
-	/*class Voronoi
-	{
-	public:
-		std::list<Point> edge_points;
-		std::list<Edge> edges;
-		std::list<Face> faces;
-	};
+public:
+	std::vector<Node*> nodes;
+	std::vector<VoronoiSite*> sites;
 
-	class Point
-	{
-	public:
-		Vector3 position;
-		std::list<Edge*> edges;
-		Edge* out_edge;
-	};
+	Voronoi(Triangulation* triangulation);
+private:
+	std::list<DEdge*>* sortEdgesByAngle(std::vector<DEdge*> * edges, DNode* point);
+};
 
-	class Face
-	{
-	public:
-		std::list<Face*> neighbour_faces;
-		std::list<Edge*> edges;
-		Edge* start_edge;
-		Vector3 center_point;
-	};
+class Node
+{
+public:
+	Vector3 position;
+	std::vector<HEdge*> edges;
+};
 
-	class Edge
-	{
-	public:
-		Point* start_point;
-		Edge* next;
-		Edge* prev;
-		Edge* opposite;
-	};*/
-}
+class HEdge
+{
+public:
+	Node* dest;
+	HEdge* next;
+	HEdge* opposite;
+	VoronoiSite* site;
 
+	HEdge();
+};
+
+class VoronoiSite
+{
+public:
+	HEdge* start_edge;
+	Vector3 position;
+
+	VoronoiSite(std::list<DEdge*>* edges_list, DNode* pos);
+
+	std::list<VoronoiSite*> getNeighbours();
+	std::list<HEdge*> getEdges();
+};

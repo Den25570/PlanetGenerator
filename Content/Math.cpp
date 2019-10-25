@@ -1,7 +1,5 @@
-
 #include <pch.h>
 #include "Math.h"
-
 
 using namespace DirectX;
 
@@ -82,25 +80,52 @@ float mDeterminant3(std::vector<float> e)
 		(e[2] * e[4] * e[6] + e[0] * e[7] * e[5] + e[1] * e[3] * e[8]);
 }
 
-inline float vectorMult2(Vector3 v0, Vector3 v1)
+float vectorMult2(Vector3 v0, Vector3 v1)
 {
 	return v0.x*v1.y - v0.y*v1.x;
 }
 
-inline bool vectorCollision(Vector3 v11, Vector3 v12, Vector3 v21, Vector3 v22)
+float calcAngl(Vector3 v10, Vector3 v11, Vector3 v20, Vector3 v21)
+{
+	Vector3 v1, v2;
+	v1 = v11 - v10;
+	v2 = v21 - v20;
+
+	return (v1.x*v2.x + v1.y*v2.y + v1.z*v2.z) / (sqrtf(v1.x*v1.x + v1.y*v1.y + v1.z*v1.z)*sqrtf(v2.x*v2.x + v2.y*v2.y + v2.z*v2.z));
+}
+
+float Vector3::getPolarAngle()
+{
+	float angle;
+	if (x > 0 && y >= 0)
+		angle = atan(y / x);
+	else if (x > 0 && y < 0)
+		angle = atan(y / x) + 2 * M_PI;
+	else if (x < 0)
+		angle = atan(y / x) + M_PI;
+	else if (x = 0 && y > 0)
+		angle = M_PI / 2;
+	else if (x = 0 && y < 0)
+		angle = 3 * M_PI / 2;
+	else
+		angle = 0;
+	return angle;
+}
+
+bool vectorCollision(Vector3 v11, Vector3 v12, Vector3 v21, Vector3 v22)
 {
 	Vector3 cut1 = (v12 - v11);
 	Vector3 cut2 = (v22 - v21);
 
 	float Z1 = vectorMult2(cut1, (v21 - v11));
 	float Z2 = vectorMult2(cut1, (v22 - v11));
-	
-	if (sgn(Z1) == sgn(Z2) || (Z1 == 0) || (Z2 == 0)) 
-	     return false;
-	
-	float Z1 = vectorMult2(cut2, (v11 - v21));
-	float Z2 = vectorMult2(cut2, (v12 - v21));
-	
+
+	if (sgn(Z1) == sgn(Z2) || (Z1 == 0) || (Z2 == 0))
+		return false;
+
+	Z1 = vectorMult2(cut2, (v11 - v21));
+	Z2 = vectorMult2(cut2, (v12 - v21));
+
 	if (sgn(Z1) == sgn(Z2) || (Z1 == 0) || (Z2 == 0))
 		return false;
 	return true;

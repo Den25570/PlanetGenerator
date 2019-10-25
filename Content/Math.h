@@ -1,5 +1,8 @@
 #pragma once
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 using namespace DirectX;
 
 //≈сли нужен вектор на плоскости оставл€ть поле z = 0 
@@ -28,6 +31,7 @@ public:
 	static Vector3 normalize(Vector3 v);
 	static float length(Vector3 v);
 	static Vector3 calcVector(Vector3 v0, Vector3 v1, float length);
+	float getPolarAngle();
 	XMFLOAT3 convertToXMFLOAT3();
 };
 
@@ -40,13 +44,15 @@ bool compareF(const float num_1, const float num_2,const float eps = 0.001);
 bool compareD(const double num_1, const double num_2, const double eps = 0.001);
 
 //ƒетерминант матрицы 3 на 3
-inline float mDeterminant3(std::vector<float> e);
+float mDeterminant3(std::vector<float> e);
 
 //¬екторное произведение векторов на плоскости, возвращает значение z
-inline float vectorMult2(Vector3 v0, Vector3 v1);
+float vectorMult2(Vector3 v0, Vector3 v1);
+
+float calcAngl(Vector3 v10, Vector3 v11, Vector3 v20, Vector3 v21);
 
 //ѕересечение векторов v0-v1 и v2-v3
-inline bool vectorCollision(Vector3 v0, Vector3 v1, Vector3 v2, Vector3 v3);
+bool vectorCollision(Vector3 v0, Vector3 v1, Vector3 v2, Vector3 v3);
 
 //ќпределение знака численного типа
 template <typename T> int sgn(T val) {

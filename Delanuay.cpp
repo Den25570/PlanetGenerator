@@ -1,6 +1,5 @@
 #include "pch.h"
-#include "../Content/Delanuay.h"
-#include <stack>
+#include "..\Content\Delanuay.h"
 
 void Triangulation::generateTriangulation2(std::vector<Vector3> _points)
 {
@@ -61,14 +60,14 @@ void Triangulation::generateTriangulation2(std::vector<Vector3> _points)
 				else
 					potentialMCH.erase(search_res);
 
-				auto search_res = std::find(potentialMCH.begin(), potentialMCH.end(), e2);
+				search_res = std::find(potentialMCH.begin(), potentialMCH.end(), e2);
 				if (search_res == potentialMCH.end())
 					potentialMCH.push_back(e2);
 				else
 					potentialMCH.erase(search_res);
 
 				//Удаление из МВО
-				auto search_res = std::find(minConvexHull.begin(), minConvexHull.end(), e3);
+				search_res = std::find(minConvexHull.begin(), minConvexHull.end(), e3);
 				if (search_res != minConvexHull.end())
 					minConvexHull.erase(search_res);
 
@@ -205,6 +204,11 @@ int DEdge::getTriangleIndex(DTriangle* t)
 		if (triangles[i] == t)
 			return i;
 	return -1;
+}
+
+int DEdge::getNodeIndex(DNode* n)
+{
+	return n == nodes[1];
 }
 
 
