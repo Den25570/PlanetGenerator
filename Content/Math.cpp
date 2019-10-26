@@ -22,7 +22,7 @@ Vector3 Vector3::operator * (const float num)
 
 bool Vector3::operator == (const Vector3& vector2)
 {
-	return (x == vector2.x) && (y == vector2.y) && (z == vector2.z);
+	return compareF(x, vector2.x) && compareF(y, vector2.y) && compareF(z, vector2.z);
 }
 
 Vector3 Vector3::normalize(Vector3 v)
@@ -64,7 +64,7 @@ std::vector<Vector3> reverseProjectSphereOnPlane(const std::vector<Vector3> orig
 }
 
 //Сравнение чисел с плавающей запятой
-bool compareF(const float num_1, const float num_2, const float eps)
+inline bool compareF(const float num_1, const float num_2, const float eps)
 {
 	return abs(num_1 - num_2) < eps;
 }

@@ -8,12 +8,49 @@ Voronoi::Voronoi(Triangulation* triangulation)
 		std::vector<DEdge*> angle_list;
 		std::copy(&(point.edges).begin(), &(point.edges).end(), angle_list);
 
-		nodes.push_back();
-
 		auto sorted_e = sortEdgesByAngle(&angle_list, &point);
-
+		
 	}
-	
+}
+
+void Voronoi::AddSite(std::list<DEdge*>* edges_list, Vector3 pos)
+{
+	Node* prev_node = NULL;
+	bool prev_node_existed = false;
+	std::list<Node*> added_nodes;
+
+	for (auto e : *edges_list)
+	{
+		Vector3 middle_p = (e->nodes[0]->position + e->nodes[1]->position) * (1/2);
+
+		Node* new_node = nodeExist(middle_p);
+		if (new_node != NULL)
+		{	
+			if (prev_node != NULL && prev_node_existed)
+			{
+
+			}
+			prev_node_existed = true;
+		}		
+		else 
+		{
+			prev_node_existed = false;
+			new_node = new Node(middle_p);
+			added_nodes.push_back(new_node);
+		}
+			
+
+		prev_node = new_node;
+	}
+
+}
+
+Node* Voronoi::nodeExist(Vector3 pos)
+{
+	for (auto n : nodes)
+		if (n->position == pos)
+			return n;
+	return NULL;
 }
 
 std::list<DEdge*>* Voronoi::sortEdgesByAngle(std::vector<DEdge*> * edges, DNode* point)
@@ -40,11 +77,11 @@ std::list<DEdge*>* Voronoi::sortEdgesByAngle(std::vector<DEdge*> * edges, DNode*
 	return res;
 }
 
-VoronoiSite::VoronoiSite(std::list<DEdge*>* edges_list, DNode* pos)
+
+bool Node::findConnectedNode(Node* n)
 {
-	for (auto e : *edges_list)
-	{
-
-	}
+	for (auto e : edges)
+		if (e->dest == n)
+			return true;
+	return false;
 }
-

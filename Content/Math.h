@@ -40,7 +40,7 @@ std::vector<Vector3> projectSphereOnPlane(const std::vector<Vector3> originPoint
 std::vector<Vector3> reverseProjectSphereOnPlane(const std::vector<Vector3> originPoints);
 
 //Сравнение чисел с плавающей запятой
-bool compareF(const float num_1, const float num_2,const float eps = 0.001);
+inline bool compareF(const float num_1, const float num_2,const float eps = 0.001);
 bool compareD(const double num_1, const double num_2, const double eps = 0.001);
 
 //Детерминант матрицы 3 на 3
