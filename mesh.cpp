@@ -1,8 +1,5 @@
-#include "pch.h"
 #include "mesh.h"
 #include <queue>
-
-using namespace DirectX;
 
 Mesh Mesh::GenerateIsocahedronMesh()
 {

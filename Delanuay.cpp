@@ -1,5 +1,4 @@
-#include "pch.h"
-#include "..\Content\Delanuay.h"
+#include "Delanuay.h"
 
 void Triangulation::generateTriangulation2(std::vector<Vector3> _points)
 {
@@ -170,10 +169,10 @@ void DTriangle::calcCircum()
 std::vector<std::vector<DNode*>>* Triangulation::DevideNodes()
 {
 	float s = 0.1;
-	float min_x = D3D12_FLOAT32_MAX;
-	float max_x = -D3D12_FLOAT32_MAX;
-	float min_y = D3D12_FLOAT32_MAX;
-	float max_y = -D3D12_FLOAT32_MAX;
+	float min_x = std::numeric_limits<float>::max();
+	float max_x = -std::numeric_limits<float>::max();
+	float min_y = std::numeric_limits<float>::max();
+	float max_y = -std::numeric_limits<float>::max();
 
 	for (auto it = points.cbegin(); it != points.cend(); it++)
 	{
@@ -209,6 +208,15 @@ int DEdge::getTriangleIndex(DTriangle* t)
 int DEdge::getNodeIndex(DNode* n)
 {
 	return n == nodes[1];
+}
+
+DEdge* nodesConnected(DNode* n1, DNode* n2)
+{
+	for (auto edge : n1->edges)
+		for (auto node : edge->nodes)
+			if (node == n2)
+				return edge;
+	return NULL;
 }
 
 

@@ -1,48 +1,53 @@
-#include "pch.h"
-#include "..\Content\Voronoi.h"
+#include "Voronoi.h"
 
 Voronoi::Voronoi(Triangulation* triangulation)
 {
 	for (auto point : triangulation->points)
 	{
-		std::vector<DEdge*> angle_list;
-		std::copy(&(point.edges).begin(), &(point.edges).end(), angle_list);
+		auto angle_list = new std::vector<DEdge*>;
+		for (auto e : point.edges)
+			angle_list->push_back(e);
 
-		auto sorted_e = sortEdgesByAngle(&angle_list, &point);
-		
+		auto sorted_e = sortEdgesByAngle(angle_list, &point);		
+		AddSite(sorted_e, point.position);
+
+		free(angle_list);
 	}
 }
 
 void Voronoi::AddSite(std::list<DEdge*>* edges_list, Vector3 pos)
 {
-	Node* prev_node = NULL;
-	bool prev_node_existed = false;
-	std::list<Node*> added_nodes;
+	auto site = new VoronoiSite();
+	std::list<HEdge*> added_edges;
 
+	//Создание полу-ребра
 	for (auto e : *edges_list)
 	{
-		Vector3 middle_p = (e->nodes[0]->position + e->nodes[1]->position) * (1/2);
+		Vector3 middle_p = (e->nodes[0]->position + e->nodes[1]->position) * (1 / 2);
 
 		Node* new_node = nodeExist(middle_p);
-		if (new_node != NULL)
-		{	
-			if (prev_node != NULL && prev_node_existed)
-			{
-
-			}
-			prev_node_existed = true;
-		}		
-		else 
+		if (new_node == NULL)
 		{
-			prev_node_existed = false;
 			new_node = new Node(middle_p);
-			added_nodes.push_back(new_node);
+			nodes.push_back(new_node);		
 		}
-			
-
-		prev_node = new_node;
+		added_edges.push_back(new HEdge(new_node, site));
 	}
 
+	//Связывание полу-ребер
+	auto prev_edge = added_edges.end()--;
+	for (auto it = added_edges.begin(); it != added_edges.end(); it++)
+	{
+		(*prev_edge)->next = (*it);
+		(*prev_edge)->dest->edges.push_back((*it));
+
+		auto opposite_edge = (*it)->dest->findConnectedNode((*prev_edge)->dest);
+		if (opposite_edge != NULL)
+		{
+			(*it)->opposite = opposite_edge;
+			opposite_edge = (*it)->opposite;
+		}
+	}
 }
 
 Node* Voronoi::nodeExist(Vector3 pos)
@@ -64,7 +69,7 @@ std::list<DEdge*>* Voronoi::sortEdgesByAngle(std::vector<DEdge*> * edges, DNode*
 		float angle = p.getPolarAngle();
 		angle_list.push_back(angle);
 	}
-	float max = D3D12_FLOAT32_MAX;
+	float max = std::numeric_limits<float>::max();
 	while (res->size() < edges->size())
 	{
 		int max_i = 0;
@@ -78,10 +83,10 @@ std::list<DEdge*>* Voronoi::sortEdgesByAngle(std::vector<DEdge*> * edges, DNode*
 }
 
 
-bool Node::findConnectedNode(Node* n)
+HEdge* Node::findConnectedNode(Node* n)
 {
 	for (auto e : edges)
 		if (e->dest == n)
-			return true;
-	return false;
+			return e;
+	return NULL;
 }

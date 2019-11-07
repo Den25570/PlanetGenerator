@@ -2,9 +2,7 @@
 
 #include <vector>
 #include <list>
-#include "../Content/Math.h"
-
-using namespace DirectX;
+#include "Math.h"
 
 class Mesh
 {
