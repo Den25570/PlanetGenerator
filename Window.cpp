@@ -31,9 +31,7 @@ GLFWwindow * InitWindow(int * settings) {
 
 	int width, height;
 	glfwGetFramebufferSize(window, &width, &height);
-	glViewport(0, 0, width, height);
-
-	glfwSetKeyCallback(window, key_callback);
+	glViewport(0, 0, width, height);	
 
 	return window;
 }
@@ -41,14 +39,6 @@ GLFWwindow * InitWindow(int * settings) {
 void Update(GLFWwindow * window) {
 
 	
-}
-
-//Обработка нажатий клавиш
-void key_callback(GLFWwindow * window, int key, int scancode, int action, int mode) {
-	//Закрытие окна
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-		glfwSetWindowShouldClose(window, GL_TRUE);
-	}
 }
 
 GLuint LoadShaders(const char * vertex_file_path, const char * fragment_file_path) {
@@ -66,7 +56,6 @@ GLuint LoadShaders(const char * vertex_file_path, const char * fragment_file_pat
 	CompileShader(FragmentShaderCode, fragment_file_path, FragmentShaderID);
 
 	// Создаем шейдерную программу и привязываем шейдеры к ней
-	std::cout << "Создаем шейдерную программу и привязываем шейдеры к ней" << std::endl;
 	GLuint ProgramID = glCreateProgram();
 	glAttachShader(ProgramID, VertexShaderID);
 	glAttachShader(ProgramID, FragmentShaderID);
@@ -108,7 +97,7 @@ int CompileShader(std::string shaderCode, const char * path, GLuint ID)
 	GLint Result = GL_FALSE;
 	int InfoLogLength;
 	// Компилируем шейдер
-	std::cout << "Компиляция шейдера: " << path;
+	std::cout << "Компиляция шейдера: " << path << std::endl;
 	char const * VertexSourcePointer = shaderCode.c_str();
 	glShaderSource(ID, 1, &VertexSourcePointer, NULL);
 	glCompileShader(ID);

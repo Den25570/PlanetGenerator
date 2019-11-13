@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -120,22 +120,33 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp" />
-    <ClCompile Include="Delanuay.cpp" />
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="ColorMap.cpp" />
+    <ClCompile Include="delaunator.cpp" />
     <ClCompile Include="Math.cpp" />
     <ClCompile Include="mesh.cpp" />
-    <ClCompile Include="Voronoi.cpp" />
+    <ClCompile Include="PlanetData.cpp" />
+    <ClCompile Include="PlanetGen.cpp" />
+    <ClCompile Include="SimplexNoise.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Delanuay.h" />
-    <ClInclude Include="Math.h" />
+    <ClInclude Include="App.h" />
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="ColorMap.h" />
+    <ClInclude Include="delaunator.hpp" />
+    <ClInclude Include="ExtendedMath.hpp" />
     <ClInclude Include="mesh.h" />
-    <ClInclude Include="Plates.h" />
-    <ClInclude Include="Voronoi.h" />
+    <ClInclude Include="PlanetData.hpp" />
+    <ClInclude Include="PlanetGen.hpp" />
+    <ClInclude Include="SimplexNoise.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="FragmentShader.frag" />
+    <None Include="js\index.js" />
+    <None Include="js\planet-generation.js" />
+    <None Include="js\sphere-mesh.js" />
     <None Include="VertexShader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -19,45 +19,75 @@
     <Filter Include="Файлы ресурсов\Math">
       <UniqueIdentifier>{a1ee9cbc-7953-461b-8086-8289d2392aa6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Файлы заголовков\GL">
+      <UniqueIdentifier>{8f3dfc1c-0c78-471d-9d4a-a7cb396b5693}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы ресурсов\GL">
+      <UniqueIdentifier>{5c924c50-aa0b-44df-a4ee-6dfc8e75c438}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp">
       <Filter>Файлы ресурсов</Filter>
     </ClCompile>
-    <ClCompile Include="Window.cpp">
-      <Filter>Файлы ресурсов</Filter>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Файлы ресурсов\GL</Filter>
     </ClCompile>
-    <ClCompile Include="Delanuay.cpp">
-      <Filter>Файлы ресурсов\Math</Filter>
+    <ClCompile Include="mesh.cpp">
+      <Filter>Файлы ресурсов\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="Window.cpp">
+      <Filter>Файлы ресурсов\GL</Filter>
     </ClCompile>
     <ClCompile Include="Math.cpp">
       <Filter>Файлы ресурсов\Math</Filter>
     </ClCompile>
-    <ClCompile Include="Voronoi.cpp">
+    <ClCompile Include="ColorMap.cpp">
+      <Filter>Файлы ресурсов\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="PlanetData.cpp">
+      <Filter>Файлы ресурсов</Filter>
+    </ClCompile>
+    <ClCompile Include="SimplexNoise.cpp">
       <Filter>Файлы ресурсов\Math</Filter>
     </ClCompile>
-    <ClCompile Include="mesh.cpp">
+    <ClCompile Include="PlanetGen.cpp">
       <Filter>Файлы ресурсов</Filter>
+    </ClCompile>
+    <ClCompile Include="delaunator.cpp">
+      <Filter>Файлы ресурсов\Math</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Window.h">
+    <ClInclude Include="delaunator.hpp">
+      <Filter>Файлы заголовков\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="App.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="Delanuay.h">
-      <Filter>Файлы заголовков\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Math.h">
-      <Filter>Файлы заголовков\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Voronoi.h">
-      <Filter>Файлы заголовков\Math</Filter>
+    <ClInclude Include="Camera.h">
+      <Filter>Файлы заголовков\GL</Filter>
     </ClInclude>
     <ClInclude Include="mesh.h">
+      <Filter>Файлы заголовков\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Window.h">
+      <Filter>Файлы заголовков\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="ExtendedMath.hpp">
+      <Filter>Файлы заголовков\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="PlanetGen.hpp">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="Plates.h">
+    <ClInclude Include="ColorMap.h">
+      <Filter>Файлы заголовков\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="PlanetData.hpp">
       <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="SimplexNoise.h">
+      <Filter>Файлы заголовков\Math</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -65,6 +95,15 @@
       <Filter>Исходные файлы</Filter>
     </None>
     <None Include="FragmentShader.frag">
+      <Filter>Исходные файлы</Filter>
+    </None>
+    <None Include="js\planet-generation.js">
+      <Filter>Исходные файлы</Filter>
+    </None>
+    <None Include="js\sphere-mesh.js">
+      <Filter>Исходные файлы</Filter>
+    </None>
+    <None Include="js\index.js">
       <Filter>Исходные файлы</Filter>
     </None>
   </ItemGroup>
