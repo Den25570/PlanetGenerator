@@ -2,8 +2,8 @@
 
 void QuadGeometry::setMesh(TriangleMesh * mesh) {
 	indices = std::vector<size_t>(3 * mesh->numSides);
-	points = std::vector<size_t>(3 * (mesh->numRegions + mesh->numTriangles));
-	tem_mois = std::vector<size_t>(2 * (mesh->numRegions + mesh->numTriangles));
+	points = std::vector<float>(3 * (mesh->numRegions + mesh->numTriangles));
+	tem_mois = std::vector<float>(2 * (mesh->numRegions + mesh->numTriangles));
 }
 
 void QuadGeometry::setMap(TriangleMesh * mesh, Map * map) {

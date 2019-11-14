@@ -10,7 +10,7 @@
  */
 
 /* Generate the biome colormap indexed by elevation -1:+1 and rainfall 0:1 */
-int ewidth = 64;
-int eheight = 64;
+//int ewidth = 64;
+//int eheight = 64;
 
-std::vector<glm::vec4> colormap();
+std::vector<unsigned char> colormap(int ewidth = 64, int eheight = 64);

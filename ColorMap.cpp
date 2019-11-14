@@ -1,14 +1,14 @@
 #include "ColorMap.h"
 
-std::vector<glm::vec4> colormap() {
-	std::vector<glm::vec4> pixels = std::vector<glm::vec4>(ewidth * eheight * 4);
+std::vector <unsigned char> colormap(int ewidth, int eheight) {
+	std::vector<unsigned char> pixels = std::vector<unsigned char>(ewidth * eheight*4);
 
 	for (int y = 0, p = 0; y < eheight; y++) {
 		for (int x = 0; x < ewidth; x++) {
-			int e = 2 * x / ewidth - 1,
-				m = y / eheight;
+			float e = 2 * x / (float)ewidth - 1;
+			float m = y / (float)eheight;
 
-			int r, g, b;
+			unsigned char r, g, b;
 
 			if (x == ewidth / 2 - 1) {
 				r = 48;
@@ -43,10 +43,10 @@ std::vector<glm::vec4> colormap() {
 						b = 255 * e + b * (1 - e);
 					}
 
-			pixels[p].x = r / 255.0f;
-			pixels[p].y = g / 255.0f;
-			pixels[p].z = b / 255.0f;
-			pixels[p++].a = 255 / 255.0f;
+			pixels[p++] = r;
+			pixels[p++] = g;
+			pixels[p++] = b;
+			pixels[p++] = 255;
 		}
 	}
 	return pixels;

@@ -30,18 +30,18 @@ void assignTriangleValues(TriangleMesh* mesh, Map* map);
 void assignDownflow(TriangleMesh* mesh, Map* map, std::queue<int>* _queue);
 void assignFlow(TriangleMesh* mesh, Map* map);
 
-Map generateMesh(TriangleMesh orig_mesh, int N, int P, int seed);
+Map generateMesh(TriangleMesh orig_mesh, int N, int P, int seed, QuadGeometry * quadg);
 void generateMap(TriangleMesh * mesh, Map * map, QuadGeometry * quadGeometry, int N, int P, int seed);
 TriangleMesh generateDelanuaySphere(std::vector<vec3>* verticles);
-void addSouthPoleToMesh(uint southPoleId, Delaunator * delanuay);
+void addSouthPoleToMesh(uint southPoleId, Delaunator * delanuay, std::vector<vec3> * p);
 
 std::vector<size_t> pickRandomRegions(int numRegions, int platesNum, int seed);
-Plates * generatePlates(TriangleMesh * mesh, std::vector<size_t> points, int N, int P, int seed);
+Plates * generatePlates(TriangleMesh * mesh, std::vector<float> points, int N, int P, int seed);
 Borders* findCollisions(TriangleMesh * mesh, Map * map);
 
+void assignTriangleValues(TriangleMesh* mesh, Map* map);
 
-
-std::vector<size_t> vec3ToXYZ(std::vector<vec3> orig);
+std::vector<float> vec3ToXYZ(std::vector<vec3> orig);
 std::vector<double> vec2ToDouble(std::vector<vec2> * points);
 
 void draw(int N);

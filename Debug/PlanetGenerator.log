@@ -1,2 +1,15 @@
-﻿  delaunator.cpp
+﻿  App.cpp
+c:\users\lee\source\repos\planetgenerator\planetgenerator\planetdata.hpp(78): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\lee\source\repos\planetgenerator\planetgenerator\planetdata.hpp(81): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\lee\source\repos\planetgenerator\planetgenerator\app.cpp(58): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
+c:\users\lee\source\repos\planetgenerator\planetgenerator\app.cpp(59): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+c:\users\lee\source\repos\planetgenerator\planetgenerator\app.cpp(59): warning C4244: инициализация: преобразование "double" в "const float", возможна потеря данных
+c:\users\lee\source\repos\planetgenerator\planetgenerator\app.cpp(63): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+c:\users\lee\source\repos\planetgenerator\planetgenerator\app.cpp(64): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+c:\users\lee\source\repos\planetgenerator\planetgenerator\app.cpp(74): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\lee\source\repos\planetgenerator\planetgenerator\app.cpp(75): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+c:\users\lee\source\repos\planetgenerator\planetgenerator\app.cpp(76): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+c:\users\lee\source\repos\planetgenerator\planetgenerator\app.cpp(216): warning C4305: аргумент: усечение из "double" в "float"
+c:\users\lee\source\repos\planetgenerator\planetgenerator\app.cpp(230): warning C4244: аргумент: преобразование "double" в "GLfloat", возможна потеря данных
+c:\users\lee\source\repos\planetgenerator\planetgenerator\app.cpp(267): warning C4018: <: несоответствие типов со знаком и без знака
   PlanetGenerator.vcxproj -> C:\Users\Lee\source\repos\PlanetGenerator\Debug\PlanetGenerator.exe

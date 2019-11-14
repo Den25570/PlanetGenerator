@@ -1,59 +1,20 @@
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include "Window.h"
+#include "Shader.hpp"
 
-GLFWwindow * InitWindow(int * settings) {
-	if (!glfwInit())
-	{
-		std::cout << "GLW can't be initialized." << std::endl;
-		return NULL;
-	}
+#include <vector>
 
-	//Инициализация окна
-	glfwWindowHint(GLFW_SAMPLES, settings[0]);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, settings[1]);	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, settings[2]);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-	GLFWwindow * window = glfwCreateWindow(settings[3], settings[4], "Planet Generator", NULL, NULL);
-	if (window == NULL) {
-		std::cout << "Unable to open window. OpenGl version may not to be supported" << std::endl;
-		glfwTerminate();
-		return NULL;
-	}
-	glfwMakeContextCurrent(window);
-
-	glewExperimental = true;
-	if (glewInit() != GLEW_OK) {
-		std::cout << "Unable to init GLEW." << std::endl;
-		return NULL;
-	}
-
-	int width, height;
-	glfwGetFramebufferSize(window, &width, &height);
-	glViewport(0, 0, width, height);	
-
-	return window;
-}
-
-void Update(GLFWwindow * window) {
-
-	
-}
-
-GLuint LoadShaders(const char * vertex_file_path, const char * fragment_file_path) {
+Shader::Shader(const GLchar * vertexPath, const GLchar * fragmentPath) {
 
 	// Создаем шейдеры
 	GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
 	GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
 
 	// Загружаем код шейдеров
-	std::string VertexShaderCode = ReadShaderCode(vertex_file_path);
-	std::string FragmentShaderCode = ReadShaderCode(fragment_file_path);
+	std::string VertexShaderCode = ReadShaderCode(vertexPath);
+	std::string FragmentShaderCode = ReadShaderCode(fragmentPath);
 
 	//Компилируем шейдеры
-	CompileShader(VertexShaderCode, vertex_file_path, VertexShaderID);
-	CompileShader(FragmentShaderCode, fragment_file_path, FragmentShaderID);
+	CompileShader(VertexShaderCode, vertexPath, VertexShaderID);
+	CompileShader(FragmentShaderCode, fragmentPath, FragmentShaderID);
 
 	// Создаем шейдерную программу и привязываем шейдеры к ней
 	GLuint ProgramID = glCreateProgram();
@@ -75,10 +36,10 @@ GLuint LoadShaders(const char * vertex_file_path, const char * fragment_file_pat
 	glDeleteShader(VertexShaderID);
 	glDeleteShader(FragmentShaderID);
 
-	return ProgramID;
+    Program = ProgramID;
 }
 
-std::string ReadShaderCode(const char * path)
+std::string Shader::ReadShaderCode(const GLchar * path)
 {
 	std::string ShaderCode;
 	std::ifstream ShaderStream(path, std::ios::in);
@@ -92,7 +53,7 @@ std::string ReadShaderCode(const char * path)
 	return ShaderCode;
 }
 
-int CompileShader(std::string shaderCode, const char * path, GLuint ID)
+int Shader::CompileShader(std::string shaderCode, const GLchar * path, GLuint ID)
 {
 	GLint Result = GL_FALSE;
 	int InfoLogLength;
@@ -112,3 +73,5 @@ int CompileShader(std::string shaderCode, const char * path, GLuint ID)
 	}
 	return Result;
 }
+
+void Shader::Use() { glUseProgram(this->Program); }

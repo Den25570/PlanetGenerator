@@ -36,9 +36,6 @@
     <ClCompile Include="mesh.cpp">
       <Filter>Файлы ресурсов\GL</Filter>
     </ClCompile>
-    <ClCompile Include="Window.cpp">
-      <Filter>Файлы ресурсов\GL</Filter>
-    </ClCompile>
     <ClCompile Include="Math.cpp">
       <Filter>Файлы ресурсов\Math</Filter>
     </ClCompile>
@@ -57,6 +54,9 @@
     <ClCompile Include="delaunator.cpp">
       <Filter>Файлы ресурсов\Math</Filter>
     </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Файлы ресурсов\GL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="delaunator.hpp">
@@ -69,9 +69,6 @@
       <Filter>Файлы заголовков\GL</Filter>
     </ClInclude>
     <ClInclude Include="mesh.h">
-      <Filter>Файлы заголовков\GL</Filter>
-    </ClInclude>
-    <ClInclude Include="Window.h">
       <Filter>Файлы заголовков\GL</Filter>
     </ClInclude>
     <ClInclude Include="ExtendedMath.hpp">
@@ -89,6 +86,9 @@
     <ClInclude Include="SimplexNoise.h">
       <Filter>Файлы заголовков\Math</Filter>
     </ClInclude>
+    <ClInclude Include="Shader.hpp">
+      <Filter>Файлы заголовков\GL</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="VertexShader.vert">
@@ -104,6 +104,12 @@
       <Filter>Исходные файлы</Filter>
     </None>
     <None Include="js\index.js">
+      <Filter>Исходные файлы</Filter>
+    </None>
+    <None Include="Points.frag">
+      <Filter>Исходные файлы</Filter>
+    </None>
+    <None Include="Points.vert">
       <Filter>Исходные файлы</Filter>
     </None>
   </ItemGroup>

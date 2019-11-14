@@ -193,7 +193,7 @@ int Isocahedron::triangleExist(std::list<std::vector<unsigned short>> *triangles
 }
 
 void TriangleMesh::update() {
-	auto _triangles = triangles;
+	auto _triangles = this->triangles;
 	auto _halfedges = halfedges;
 	auto _r_vertex = verticles;
 	auto _t_vertex = t_verticles;

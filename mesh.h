@@ -52,12 +52,12 @@ struct TriangleMesh {
 		std::vector<std::size_t> _halfedges,
 		std::vector<vec3> _points)
 	{
-		int numBoundaryRegions = _numBoundaryRegions;
-		int numSolidSides = _numSolidSides;
-		std::vector<std::vector<std::size_t>> verticles = _verticles;
-		std::vector<std::size_t> triangles = _triangles;
-		std::vector<std::size_t> halfedges = _halfedges;
-		std::vector<vec3> points = _points;
+	    numBoundaryRegions = _numBoundaryRegions;
+	    numSolidSides = _numSolidSides;
+		verticles = _verticles;
+		triangles = _triangles;
+		halfedges = _halfedges;
+		points = _points;		
 
 		update();
 	}

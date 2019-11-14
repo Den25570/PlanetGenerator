@@ -762,12 +762,12 @@ function draw() {
         drawPlateBoundaries(u_projection, mesh, map);
     }
     
-    // renderPoints({
-    //     u_projection,
-    //     u_pointsize,
-    //     a_xyz: map.r_xyz,
-    //     count: mesh.numRegions,
-    // });
+     renderPoints({
+       u_projection,
+       u_pointsize,
+       a_xyz: map.r_xyz,
+       count: mesh.numRegions,
+     });
 }
 
 generateMesh();

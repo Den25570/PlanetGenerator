@@ -5,6 +5,8 @@
 
 #include "mesh.h"
 
+using namespace glm;
+
 struct Plates {
 	std::vector<int>r_plate;
 	std::vector<glm::vec3> plate_vec;
@@ -39,26 +41,44 @@ struct Borders {
 };
 
 struct Map {
-	std::vector<size_t> r_xyz;
-	std::vector<size_t> t_xyz;
-	std::vector<int> r_elevation;
-	std::vector<int> t_elevation;
-	std::vector<int> r_moisture;
-	std::vector<int> t_moisture;
+	std::vector<float> r_xyz;
+	std::vector<float> t_xyz;
+	std::vector<float> r_elevation;
+	std::vector<float> t_elevation;
+	std::vector<float> r_moisture;
+	std::vector<float> t_moisture;
 	std::vector<int> t_downflow_s;
-	std::vector<int> order_t;
-	std::vector<int> t_flow;
-	std::vector<int> s_flow;
+	std::vector<float> order_t;
+	std::vector<float> t_flow;
+	std::vector<float> s_flow;
 	Plates plates;
 	Borders borders;
+
 };
 
 class QuadGeometry {
 public:
 	std::vector<size_t> indices; //i
-	std::vector<size_t> points;  //xyz
-	std::vector<size_t> tem_mois; //tm
+	std::vector<float> points;  //xyz
+	std::vector<float> tem_mois; //tm
 
 	void setMesh(TriangleMesh * mesh);
 	void setMap(TriangleMesh * mesh, Map * map);
+};
+
+class QuadGeometryV {
+public:
+	std::vector<size_t> indices; //i
+	std::vector<vec3> points;  //xyz
+	std::vector<vec2> tem_mois; //tm
+
+	QuadGeometryV(QuadGeometry qg)
+	{
+		indices = qg.indices;
+		for (int i = 0; i < qg.points.size()/3; i++)
+			points.push_back(vec3(qg.points[i*3+0], qg.points[i * 3 + 1], qg.points[i * 3 + 2]));
+
+		for (int i = 0; i < qg.tem_mois.size() / 2; i++)
+			tem_mois.push_back(vec2(qg.tem_mois[i * 2 + 0], qg.tem_mois[i * 2 + 1]));
+	}
 };

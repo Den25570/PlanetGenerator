@@ -1,7 +1,7 @@
 #include "PlanetGen.hpp"
 
-std::vector<size_t> vec3ToXYZ(std::vector<vec3> orig) {
-	std::vector<size_t> res;
+std::vector<float> vec3ToXYZ(std::vector<vec3> orig) {
+	std::vector<float> res;
 	for (auto p : orig)
 	{
 		res.push_back(p.x);
@@ -12,15 +12,15 @@ std::vector<size_t> vec3ToXYZ(std::vector<vec3> orig) {
 }
 
 /* Calculate the centroid and push it onto an array */
-void pushCentroidOfTriangle(std::vector<size_t> * out, size_t ax, size_t ay, size_t az, size_t bx, size_t by, size_t bz, size_t cx, size_t cy, size_t cz) {
+void pushCentroidOfTriangle(std::vector<float> * out, float ax, float ay, float az, float bx, float by, float bz, float cx, float cy, float cz) {
 	// TODO: renormalize to radius 1
 	out->push_back((ax + bx + cx) / 3);
 	out->push_back((ay + by + cy) / 3);
 	out->push_back((az + bz + cz) / 3);
 }
 
-std::vector<size_t> generateTriangleCenters(TriangleMesh mesh, std::vector<size_t> r_xyz) {
-	std::vector<size_t> t_xyz;
+std::vector<float> generateTriangleCenters(TriangleMesh mesh, std::vector<float> r_xyz) {
+	std::vector<float> t_xyz;
 	for (int t = 0; t < mesh.numTriangles; t++) {
 		int a = mesh.s_begin_r(3 * t);
 		int	b = mesh.s_begin_r(3 * t + 1);
@@ -33,23 +33,22 @@ std::vector<size_t> generateTriangleCenters(TriangleMesh mesh, std::vector<size_
 	return t_xyz;
 }
 
-Map generateMesh(TriangleMesh orig_mesh, int N, int P, int seed) {
+Map generateMesh(TriangleMesh orig_mesh, int N, int P, int seed, QuadGeometry * quadg) {
 	Map map;
-	QuadGeometry quadGeometry;
-	quadGeometry.setMesh(&orig_mesh);
+	quadg->setMesh(&orig_mesh);
 
 	map.r_xyz = vec3ToXYZ(orig_mesh.points);
-	map.t_xyz = generateTriangleCenters(orig_mesh, map.t_xyz);
-	map.r_elevation = std::vector<int>(orig_mesh.numRegions);
-	map.t_elevation = std::vector<int>(orig_mesh.numTriangles);
-	map.r_moisture = std::vector<int>(orig_mesh.numRegions);
-	map.t_moisture = std::vector<int>(orig_mesh.numTriangles);
+	map.t_xyz = generateTriangleCenters(orig_mesh, map.r_xyz);
+	map.r_elevation = std::vector<float>(orig_mesh.numRegions);
+	map.t_elevation = std::vector<float>(orig_mesh.numTriangles);
+	map.r_moisture = std::vector<float>(orig_mesh.numRegions);
+	map.t_moisture = std::vector<float>(orig_mesh.numTriangles);
 	map.t_downflow_s = std::vector<int>(orig_mesh.numTriangles);
-	map.order_t = std::vector<int>(orig_mesh.numTriangles);
-	map.t_flow = std::vector<int>(orig_mesh.numTriangles);
-	map.s_flow = std::vector<int>(orig_mesh.numSides);
+	map.order_t = std::vector<float>(orig_mesh.numTriangles);
+	map.t_flow = std::vector<float>(orig_mesh.numTriangles);
+	map.s_flow = std::vector<float>(orig_mesh.numSides);
 
-    generateMap(&orig_mesh, &map, &quadGeometry,N,P,seed);
+    generateMap(&orig_mesh, &map, quadg,N,P,seed);
 	return map;
 }
 
@@ -67,7 +66,9 @@ std::vector<size_t> assignDistanceField(TriangleMesh * mesh, std::vector<size_t>
 
 	std::vector<int> out_r;
 	for (int queue_out = 0; queue_out < mesh->numRegions; queue_out++) {
-		int pos = queue_out + rand() % (queue.size() - queue_out) + queue_out;
+		if (queue.size() == queue_out)
+			return r_distance;
+		int pos = queue_out + rand() % (queue.size() - queue_out);
 		int current_r = queue[pos];
 		queue[pos] = queue[queue_out];
 		out_r = mesh->r_circulate_r(current_r);
@@ -112,7 +113,7 @@ Borders* findCollisions(TriangleMesh * mesh, Map * map) {
 				/* simulate movement for deltaTime seconds */
 				float distanceBefore = distance(current_pos, neighbor_pos);
 				float distanceAfter = distance(current_pos + map->plates.plate_vec[map->plates.r_plate[current_r]] * deltaTime,
-					neighbor_pos + map->plates.plate_vec[map->plates.r_plate[neighbor_r]] * deltaTime);
+			                                   neighbor_pos + map->plates.plate_vec[map->plates.r_plate[neighbor_r]] * deltaTime);
 				/* how much closer did these regions get to each other? */
 				float compression = distanceBefore - distanceAfter;
 				/* keep track of the adjacent region that gets closest */
@@ -174,7 +175,7 @@ void assignRegionElevation(TriangleMesh * mesh, Map * map) {
 	for (auto r : borders.coastline_r) { stop_r.push_back(r); }
 	for (auto r : borders.ocean_r) { stop_r.push_back(r); }
 
-	//console.log('seeds mountain/coastline/ocean:', mountain_r.size, coastline_r.size, ocean_r.size, 'plate_is_ocean', plate_is_ocean.size, '/', P);
+	std::cout << "seeds mountain/coastline/ocean:" << borders.mountain_r.size() << " " << borders.coastline_r.size() << " " << borders.ocean_r.size() << " " << "plate_is_ocean: " << map->plates.plates_is_ocean.size() << std::endl;
 	auto r_distance_a = assignDistanceField(mesh, borders.mountain_r, borders.ocean_r);
 	auto r_distance_b = assignDistanceField(mesh, borders.ocean_r, borders.coastline_r);
 	auto r_distance_c = assignDistanceField(mesh, borders.coastline_r, stop_r);
@@ -195,19 +196,6 @@ void assignRegionElevation(TriangleMesh * mesh, Map * map) {
 
 ///////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
-void assignTriangleValues(TriangleMesh* mesh, Map* map) {
-	for (int t = 0; t < mesh->numTriangles; t++) {
-		int s0 = 3 * t;
-		int r1 = mesh->s_begin_r(s0);
-		int	r2 = mesh->s_begin_r(s0 + 1);
-		int	r3 = mesh->s_begin_r(s0 + 2);
-		map->t_elevation[t] = 1 / 3 * (map->r_elevation[r1] + map->r_elevation[r2] + map->r_elevation[r3]);
-		map->t_moisture[t] = 1 / 3 * (map->r_moisture[r1] + map->r_moisture[r2] + map->r_moisture[r3]);
-	}
-}
-
-
-
 
 void assignDownflow(TriangleMesh* mesh, Map* map, std::queue<int>* _queue) {
 	/* Use a priority queue, starting with the ocean triangles and
@@ -253,7 +241,7 @@ void assignDownflow(TriangleMesh* mesh, Map* map, std::queue<int>* _queue) {
 
 
 void assignFlow(TriangleMesh* mesh, Map* map) {
-	map->s_flow = std::vector<int>(0, 0);
+	map->s_flow = std::vector<float>(0, 0);
 	for (int t = 0; t < mesh->numTriangles; t++) {
 		if (map->t_elevation[t] >= 0.0) {
 			map->t_flow[t] = 0.5 * map->t_moisture[t] * map->t_moisture[t];
@@ -278,6 +266,17 @@ void assignFlow(TriangleMesh* mesh, Map* map) {
 ///////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
 
+void assignTriangleValues(TriangleMesh* mesh, Map* map) {
+	for (int t = 0; t < mesh->numTriangles; t++) {
+		int s0 = 3 * t;
+		int r1 = mesh->s_begin_r(s0);
+		int	r2 = mesh->s_begin_r(s0 + 1);
+		int	r3 = mesh->s_begin_r(s0 + 2);
+		map->t_elevation[t] = 1 / 3 * (map->r_elevation[r1] + map->r_elevation[r2] + map->r_elevation[r3]);
+		map->t_moisture[t] = 1 / 3 * (map->r_moisture[r1] + map->r_moisture[r2] + map->r_moisture[r3]);
+	}
+}
+
 void generateMap(TriangleMesh * mesh, Map * map, QuadGeometry * quadGeometry, int N, int P, int seed) {
 	Plates * plates = generatePlates(mesh, map->r_xyz, N,P,seed);
 	map->plates = *plates;
@@ -295,7 +294,7 @@ void generateMap(TriangleMesh * mesh, Map * map, QuadGeometry * quadGeometry, in
 	}
 	std::queue<int> _queue;
 
-	//assignTriangleValues(&mesh, &map);
+	assignTriangleValues(mesh, map);
 	//assignDownflow(&mesh, &map, &_queue);
 	//assignFlow(&mesh, &map);
 
@@ -313,7 +312,7 @@ std::vector<size_t> pickRandomRegions(int numRegions, int platesNum, int seed) {
 	return region_set;
 }
 
-Plates * generatePlates(TriangleMesh * mesh, std::vector<size_t> points, int N, int P, int seed) {
+Plates * generatePlates(TriangleMesh * mesh, std::vector<float> points, int N, int P, int seed) {
 	std::vector<int> r_plate = std::vector<int>(mesh->numRegions, -1);
 
 	auto region_set = pickRandomRegions(mesh->numRegions, std::min(N, P), seed);
@@ -336,13 +335,17 @@ Plates * generatePlates(TriangleMesh * mesh, std::vector<size_t> points, int N, 
 	}
 
 	// Assign a random movement vector for each plate
-	std::vector<vec3> plate_vec;
+	std::vector<vec3> plate_vec = std::vector<vec3>(N);
 	for (auto center_r : region_set) {
 		auto neighbor_r = mesh->r_circulate_r(center_r)[0];
 		vec3 p0 = vec3(points[3 * center_r], points[3 * center_r + 1], points[3 * center_r + 2]);
 		vec3 p1 = vec3(points[3 * neighbor_r], points[3 * neighbor_r + 1], points[3 * neighbor_r + 2]);
 		plate_vec[center_r] = normalize(p1 - p0);
 	}
+
+	for (int i = 0; i < r_plate.size(); i++)
+		if (r_plate[i] == -1)
+			r_plate[i] = r_plate[rand() % region_set.size()];
 
 	return new Plates(r_plate, plate_vec, region_set);
 }
@@ -352,12 +355,11 @@ TriangleMesh generateDelanuaySphere(std::vector<vec3>* verticles) {
 	Delaunator delaunay = Delaunator(vec2ToDouble(stereographicProjection((verticles))));
 
 	std::vector<vec3> points;
-	for (std::size_t i = 0; i < delaunay.coords.size() / 3; i++)
-		points.push_back(vec3(delaunay.coords[i * 3 + 0],
-			delaunay.coords[i * 3 + 1],
-			delaunay.coords[i * 3 + 2]));
-	points.push_back(vec3(0.0f, 0.0f, 1.0f));
-	addSouthPoleToMesh(points.size() - 1, &delaunay);
+	for (std::size_t i = 0; i < verticles->size(); i++)
+		points.push_back((*verticles)[i]);
+
+    points.push_back(vec3(0.0f, 0.0f, 1.0f));
+	addSouthPoleToMesh(points.size() - 1, &delaunay, &points);
 
 	auto dummy_r_vertex = std::vector<std::vector<size_t>>(verticles->size() + 1, std::vector<size_t>(2, 0));
 
@@ -382,13 +384,21 @@ std::vector<double> vec2ToDouble(std::vector<vec2> * points) {
 	return res;
 }
 
-void addSouthPoleToMesh(uint southPoleId, Delaunator * delanuay) {
+void addSouthPoleToMesh(uint southPoleId, Delaunator * delanuay, std::vector<vec3> * p) {
+
+	/*for (int i = 0; i < p->size() ; i++)
+		if (compareF((*p)[i].x, 0, 1e-5) && compareF((*p)[i].y, 0, 1e-5) && compareF((*p)[i].z, 1, 1e-5))
+		{
+			(*p)[i].z = -(*p)[i].z;
+			break;
+		}*/
+
 	int numSides = delanuay->triangles.size();
 
 	int numUnpairedSides = 0;
 	int firstUnpairedSide = -1;
 
-	std::size_t* pointIdToSideId = (std::size_t*) malloc(sizeof(std::size_t) * numSides);
+	std::vector<size_t> pointIdToSideId = std::vector<size_t>(numSides);
 
 	for (std::size_t s = 0; s < numSides; s++) {
 		if (delanuay->halfedges[s] == -1) {
@@ -398,23 +408,31 @@ void addSouthPoleToMesh(uint southPoleId, Delaunator * delanuay) {
 		}
 	}
 
+	std::vector<size_t> newTriangles = std::vector<size_t>(numSides + 3 * numUnpairedSides);
+	std::vector<size_t> newHalfedges = std::vector<size_t>(numSides + 3 * numUnpairedSides);
+	std::copy(delanuay->triangles.begin(), delanuay->triangles.end(), newTriangles.begin());
+	std::copy(delanuay->halfedges.begin(), delanuay->halfedges.end(), newHalfedges.begin());
+
+
 	for (std::size_t i = 0, s = firstUnpairedSide;
 		i < numUnpairedSides;
-		i++, s = pointIdToSideId[delanuay->triangles[(s % 3 == 2) ? s - 2 : s + 1]]) {
+		i++, s = pointIdToSideId[newTriangles[(s % 3 == 2) ? s - 2 : s + 1]]) {
 
 		// Construct a pair for the unpaired side s
 		std::size_t newSide = numSides + 3 * i;
-		delanuay->halfedges[s] = newSide;
-		delanuay->halfedges[newSide] = s;
-		delanuay->halfedges[newSide] = delanuay->triangles[(s % 3 == 2) ? s - 2 : s + 1];
+		newHalfedges[s] = newSide;
+		newHalfedges[newSide] = s;
+		newTriangles[newSide] = newTriangles[(s % 3 == 2) ? s - 2 : s + 1];
 
 		// Construct a triangle connecting the new side to the south pole
-		delanuay->triangles[newSide + 1] = delanuay->triangles[s];
-		delanuay->triangles[newSide + 2] = southPoleId;
+		newTriangles[newSide + 1] = newTriangles[s];
+		newTriangles[newSide + 2] = southPoleId;
 		std::size_t k = numSides + (3 * i + 4) % (3 * numUnpairedSides);
-		delanuay->halfedges[newSide + 2] = k;
-		delanuay->halfedges[k] = newSide + 2;
+		newHalfedges[newSide + 2] = k;
+		newHalfedges[k] = newSide + 2;
 	}
+	delanuay->triangles = newTriangles;
+	delanuay->halfedges = newHalfedges;
 }
 
 void draw(int N) {
