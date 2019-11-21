@@ -1,10 +1,10 @@
-#version 330 core
+#version 330
 
 precision mediump float;
 uniform mat4 u_projection;
+layout (location = 0) attribute vec3 a_xyz;
+layout (location = 1) attribute vec2 a_tm;
 
-layout (location = 0) in vec3 a_xyz;
-layout (location = 1) in vec2 a_tm;
 out vec2 v_tm;
 
 void main() {

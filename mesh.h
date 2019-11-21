@@ -4,8 +4,9 @@
 
 #include <vector>
 #include <list>
+#include "delaunator.hpp"
 
-using namespace glm;
+using namespace delaunator;
 
 struct Isocahedron
 {
@@ -62,7 +63,7 @@ struct TriangleMesh {
 		update();
 	}
 
-	void Update_d(std::vector<std::vector<size_t>> _points, std::vector<std::size_t> _triangles, std::vector<std::size_t> _halfedges);
+	void Update_d(std::vector<std::vector<std::size_t>> _points, std::vector<std::size_t> _triangles, std::vector<std::size_t> _halfedges);
 
 	void update();
 
@@ -92,13 +93,17 @@ struct TriangleMesh {
 
 	int s_opposite_s(int s);
 
-	std::vector<int> t_circulate_s(int t);
-	std::vector<int> t_circulate_r(int t);
-	std::vector<int> t_circulate_t(int t);
-	std::vector<int> r_circulate_s(int r);
-	std::vector<int> r_circulate_r(int r);
-	std::vector<int> r_circulate_t(int r);
+	std::vector<std::size_t> t_circulate_s(std::size_t t);
+	std::vector<std::size_t> t_circulate_r(std::size_t t);
+	std::vector<std::size_t> t_circulate_t(std::size_t t);
+	std::vector<std::size_t> r_circulate_s(std::size_t r);
+	std::vector<std::size_t> r_circulate_r(std::size_t r);
+	std::vector<std::size_t> r_circulate_t(std::size_t r);
 };
 
+std::vector<vec3> generateFibonacciSphere(int N, float jitter = 0, float randFloat = 0);
+
+TriangleMesh generateDelanuaySphere(std::vector<vec3>* verticles);
+void addSouthPoleToMesh(std::size_t southPoleId, Delaunator * delanuay, std::vector<vec3> * p);
 
 

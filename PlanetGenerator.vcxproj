@@ -125,10 +125,10 @@
     <ClCompile Include="delaunator.cpp" />
     <ClCompile Include="Math.cpp" />
     <ClCompile Include="mesh.cpp" />
-    <ClCompile Include="PlanetData.cpp" />
-    <ClCompile Include="PlanetGen.cpp" />
+    <ClCompile Include="Planet.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="SimplexNoise.cpp" />
+    <ClCompile Include="StructToFlat.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
@@ -136,19 +136,24 @@
     <ClInclude Include="ColorMap.h" />
     <ClInclude Include="delaunator.hpp" />
     <ClInclude Include="ExtendedMath.hpp" />
+    <ClInclude Include="Map.hpp" />
     <ClInclude Include="mesh.h" />
-    <ClInclude Include="PlanetData.hpp" />
-    <ClInclude Include="PlanetGen.hpp" />
+    <ClInclude Include="Planet.hpp" />
+    <ClInclude Include="Plates.hpp" />
+    <ClInclude Include="QuadGeometry.hpp" />
     <ClInclude Include="Shader.hpp" />
     <ClInclude Include="SimplexNoise.h" />
+    <ClInclude Include="StructToFlat.hpp" />
+    <ClInclude Include="Voronoi.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="FragmentShader.frag" />
-    <None Include="js\index.js" />
-    <None Include="js\planet-generation.js" />
-    <None Include="js\sphere-mesh.js" />
+    <None Include="Lines.frag" />
+    <None Include="Lines.vert" />
     <None Include="Points.frag" />
     <None Include="Points.vert" />
+    <None Include="Triangles.frag" />
+    <None Include="Triangles.vert" />
     <None Include="VertexShader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

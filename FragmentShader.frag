@@ -1,12 +1,6 @@
 #version 330 core
 
-//in vec3 color;
-//out vec4 res_color;
-
-//void main()
-//{
-//	res_color = vec4(color,1.0f);
-//}
+#extension GL_OES_standard_derivatives : enable
 
 precision mediump float;
 
@@ -14,10 +8,10 @@ uniform sampler2D u_colormap;
 uniform vec2 u_light_angle;
 uniform float u_inverse_texture_size, u_slope, u_flat, u_c, u_d, u_outline_strength;
 
-varying vec2 v_tm;
-
+in vec2 v_tm;
 void main() {
    float e = v_tm.x > 0.0? 0.5 * (v_tm.x * v_tm.x + 1.0) : 0.5 * (v_tm.x + 1.0);
+   e = e > 0.98 ? 0.98 : e < 0.02 ? 0.02 : e;
    float dedx = dFdx(v_tm.x);
    float dedy = dFdy(v_tm.x);
    vec3 slope_vector = normalize(vec3(dedy, dedx, u_d * 2.0 * u_inverse_texture_size));

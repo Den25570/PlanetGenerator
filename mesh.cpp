@@ -2,6 +2,8 @@
 #include "mesh.h"
 #include <queue>
 
+#include "StructToFlat.hpp"
+
 Isocahedron::Isocahedron(int subdivisions_num, float radius, bool onlyPoints)
 {
 	float phi = (1.0 + sqrt(5.0)) / 2.0;
@@ -228,13 +230,13 @@ void TriangleMesh::update() {
 	// Construct triangle coordinates
 	for (int s = 0; s < _triangles.size(); s += 3) {
 		int t = s / 3;
-		std::vector<size_t> a = _r_vertex[_triangles[s]];
-		std::vector<size_t> b = _r_vertex[_triangles[s + 1]];
-		std::vector<size_t> c = _r_vertex[_triangles[s + 2]];
+		std::vector<std::size_t> a = _r_vertex[_triangles[s]];
+		std::vector<std::size_t> b = _r_vertex[_triangles[s + 1]];
+		std::vector<std::size_t> c = _r_vertex[_triangles[s + 2]];
 		if (s_ghost(s)) {
 			// ghost triangle center is just outside the unpaired side
-			size_t dx = b[0] - a[0];
-			size_t dy = b[1] - a[1];
+			std::size_t dx = b[0] - a[0];
+			std::size_t dy = b[1] - a[1];
 			float scale = 10 / sqrtf(dx*dx + dy * dy); // go 10units away from side
 			_t_vertex[t][0] = 0.5 * (a[0] + b[0]) + dy * scale;
 			_t_vertex[t][1] = 0.5 * (a[1] + b[1]) - dx * scale;
@@ -247,7 +249,7 @@ void TriangleMesh::update() {
 	}
 }
 
-void TriangleMesh::Update_d(std::vector<std::vector<size_t>> _points, std::vector<std::size_t> _triangles, std::vector<std::size_t> _halfedges) {
+void TriangleMesh::Update_d(std::vector<std::vector<std::size_t>> _points, std::vector<std::size_t> _triangles, std::vector<std::size_t> _halfedges) {
 	verticles = _points;
 	triangles = _triangles;
 	halfedges = _halfedges;
@@ -281,14 +283,14 @@ int TriangleMesh::s_outer_t(int s) { return s_to_t(halfedges[s]); }
 
 int TriangleMesh::s_opposite_s(int s) { return halfedges[s]; }
 
-std::vector<int> TriangleMesh::t_circulate_s(int t) { auto out_s = std::vector<int>(3); for (int i = 0; i < 3; i++) { out_s[i] = 3 * t + i; } return out_s; }
-std::vector<int> TriangleMesh::t_circulate_r(int t) { auto out_r = std::vector<int>(3); for (int i = 0; i < 3; i++) { out_r[i] = triangles[3 * t + i]; } return out_r; }
-std::vector<int> TriangleMesh::t_circulate_t(int t) { auto out_t = std::vector<int>(3); for (int i = 0; i < 3; i++) { out_t[i] = s_outer_t(3 * t + i); } return out_t; }
+std::vector<std::size_t> TriangleMesh::t_circulate_s(std::size_t t) { auto out_s = std::vector<std::size_t>(3); for (std::size_t i = 0; i < 3; i++) { out_s[i] = 3 * t + i; } return out_s; }
+std::vector<std::size_t> TriangleMesh::t_circulate_r(std::size_t t) { auto out_r = std::vector<std::size_t>(3); for (std::size_t i = 0; i < 3; i++) { out_r[i] = triangles[3 * t + i]; } return out_r; }
+std::vector<std::size_t> TriangleMesh::t_circulate_t(std::size_t t) { auto out_t = std::vector<std::size_t>(3); for (std::size_t i = 0; i < 3; i++) { out_t[i] = s_outer_t(3 * t + i); } return out_t; }
 
-std::vector<int> TriangleMesh::r_circulate_s(int r) {
+std::vector<std::size_t> TriangleMesh::r_circulate_s(std::size_t r) {
 	const int s0 = r_in_s[r];
 	auto incoming = s0;
-	std::vector<int> out_s;
+	std::vector<std::size_t> out_s;
 	do {
 		out_s.push_back(halfedges[incoming]);
 		auto outgoing = s_next_s(incoming);
@@ -297,10 +299,10 @@ std::vector<int> TriangleMesh::r_circulate_s(int r) {
 	return out_s;
 }
 
-std::vector<int> TriangleMesh::r_circulate_r(int r) {
+std::vector<std::size_t> TriangleMesh::r_circulate_r(std::size_t r) {
 	const int s0 = r_in_s[r];
 	auto incoming = s0;
-	std::vector<int> out_r;
+	std::vector<std::size_t> out_r;
 	do {
 		out_r.push_back(s_begin_r(incoming));
 		auto outgoing = s_next_s(incoming);
@@ -309,14 +311,110 @@ std::vector<int> TriangleMesh::r_circulate_r(int r) {
 	return out_r;
 }
 
-std::vector<int> TriangleMesh::r_circulate_t(int r) {
+std::vector<std::size_t> TriangleMesh::r_circulate_t(std::size_t r) {
 	const int s0 = r_in_s[r];
 	auto incoming = s0;
-	std::vector<int> out_t;
+	std::vector<std::size_t> out_t;
 	do {
 		out_t.push_back(s_to_t(incoming));
 		auto outgoing = s_next_s(incoming);
 		incoming = halfedges[outgoing];
 	} while (incoming != -1 && incoming != s0);
 	return out_t;
+}
+
+std::vector<vec3> generateFibonacciSphere(int N, float jitter, float randFloat) {
+	std::vector<float> a_latlong;
+
+	// Second algorithm from http://web.archive.org/web/20120421191837/http://www.cgafaq.info/wiki/Evenly_distributed_points_on_sphere
+	const float s = 3.6f / sqrtf(N);
+	const float dlong = M_PI * (3 - sqrtf(5));  /* ~2.39996323 */
+	const float dz = 2.0f / N;
+	for (float k = 0, lng = 0, z = 1 - dz / 2; k != N; k++, z -= dz) {
+		float r = sqrtf(1 - z * z);
+		float latDeg = asin(z) * 180 / M_PI;
+		float lonDeg = lng * 180 / M_PI;
+		//if (_randomLat[k] == undefined) _randomLat[k] = randFloat() - randFloat();
+		//if (_randomLon[k] == undefined) _randomLon[k] = randFloat() - randFloat();
+		//latDeg += jitter * _randomLat[k] * (latDeg - Math.asin(Math.max(-1, z - dz * 2 * Math.PI * r / s)) * 180 / Math.PI);
+		//lonDeg += jitter * _randomLon[k] * (s / r * 180 / Math.PI);
+		a_latlong.push_back(latDeg);
+		a_latlong.push_back(((int)trunc(lonDeg) % 360) + lonDeg - trunc(lonDeg));
+		lng += dlong;
+	}
+	std::vector<vec3> out;
+	for (int r = 0; r < a_latlong.size() / 2; r++) {
+		float latRad = a_latlong[r * 2 + 0] / 180.0 * M_PI;
+		float lonRad = a_latlong[r * 2 + 1] / 180.0 * M_PI;
+		out.push_back(vec3(cosf(latRad) * cosf(lonRad),
+			cosf(latRad) * sinf(lonRad),
+			sinf(latRad)));
+	}
+	return out;
+}
+
+TriangleMesh generateDelanuaySphere(std::vector<vec3>* verticles) {
+	Delaunator delaunay = Delaunator(vec2ToDouble(stereographicProjection((verticles))));
+
+	std::vector<vec3> points;
+	for (std::size_t i = 0; i < verticles->size(); i++)
+		points.push_back((*verticles)[i]);
+
+	points.push_back(vec3(0.0f, 0.0f, 1.0f));
+	addSouthPoleToMesh(points.size() - 1, &delaunay, &points);
+
+	auto dummy_r_vertex = std::vector<std::vector<std::size_t>>(verticles->size() + 1, std::vector<std::size_t>(2, 0));
+
+	TriangleMesh mesh = TriangleMesh(0,
+		delaunay.triangles.size(),
+		dummy_r_vertex,
+		delaunay.triangles,
+		delaunay.halfedges,
+		points
+	);
+
+	return mesh;
+}
+
+void addSouthPoleToMesh(std::size_t southPoleId, Delaunator * delanuay, std::vector<vec3> * p) {
+	int numSides = delanuay->triangles.size();
+
+	int numUnpairedSides = 0;
+	int firstUnpairedSide = -1;
+
+	std::vector<std::size_t> pointIdToSideId = std::vector<std::size_t>(numSides);
+
+	for (std::size_t s = 0; s < numSides; s++) {
+		if (delanuay->halfedges[s] == -1) {
+			numUnpairedSides++;
+			pointIdToSideId[delanuay->triangles[s]] = s;
+			firstUnpairedSide = s;
+		}
+	}
+
+	std::vector<std::size_t> newTriangles = std::vector<std::size_t>(numSides + 3 * numUnpairedSides);
+	std::vector<std::size_t> newHalfedges = std::vector<std::size_t>(numSides + 3 * numUnpairedSides);
+	std::copy(delanuay->triangles.begin(), delanuay->triangles.end(), newTriangles.begin());
+	std::copy(delanuay->halfedges.begin(), delanuay->halfedges.end(), newHalfedges.begin());
+
+
+	for (std::size_t i = 0, s = firstUnpairedSide;
+		i < numUnpairedSides;
+		i++, s = pointIdToSideId[newTriangles[(s % 3 == 2) ? s - 2 : s + 1]]) {
+
+		// Construct a pair for the unpaired side s
+		std::size_t newSide = numSides + 3 * i;
+		newHalfedges[s] = newSide;
+		newHalfedges[newSide] = s;
+		newTriangles[newSide] = newTriangles[(s % 3 == 2) ? s - 2 : s + 1];
+
+		// Construct a triangle connecting the new side to the south pole
+		newTriangles[newSide + 1] = newTriangles[s];
+		newTriangles[newSide + 2] = southPoleId;
+		std::size_t k = numSides + (3 * i + 4) % (3 * numUnpairedSides);
+		newHalfedges[newSide + 2] = k;
+		newHalfedges[k] = newSide + 2;
+	}
+	delanuay->triangles = newTriangles;
+	delanuay->halfedges = newHalfedges;
 }

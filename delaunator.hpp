@@ -13,7 +13,7 @@
 namespace delaunator {
 
 	//@see https://stackoverflow.com/questions/33333363/built-in-mod-vs-custom-mod-function-improve-the-performance-of-modulus-op/33333636#33333636
-	inline size_t fast_mod(const size_t i, const size_t c);
+	inline std::size_t fast_mod(const std::size_t i, const std::size_t c);
 	// Kahan and Babuska summation, Neumaier variant; accumulates less FP error
 	inline double sum(const std::vector<double>& x);
 

@@ -25,6 +25,12 @@
     <Filter Include="Файлы ресурсов\GL">
       <UniqueIdentifier>{5c924c50-aa0b-44df-a4ee-6dfc8e75c438}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Файлы заголовков\Generator">
+      <UniqueIdentifier>{116befcb-f36f-4cc2-8101-c71b9aa31669}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы ресурсов\Generator">
+      <UniqueIdentifier>{31a6e5c4-8908-4466-aaae-3e61da185bd0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp">
@@ -42,20 +48,20 @@
     <ClCompile Include="ColorMap.cpp">
       <Filter>Файлы ресурсов\GL</Filter>
     </ClCompile>
-    <ClCompile Include="PlanetData.cpp">
-      <Filter>Файлы ресурсов</Filter>
-    </ClCompile>
     <ClCompile Include="SimplexNoise.cpp">
       <Filter>Файлы ресурсов\Math</Filter>
-    </ClCompile>
-    <ClCompile Include="PlanetGen.cpp">
-      <Filter>Файлы ресурсов</Filter>
     </ClCompile>
     <ClCompile Include="delaunator.cpp">
       <Filter>Файлы ресурсов\Math</Filter>
     </ClCompile>
     <ClCompile Include="Shader.cpp">
       <Filter>Файлы ресурсов\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="Planet.cpp">
+      <Filter>Файлы ресурсов\Generator</Filter>
+    </ClCompile>
+    <ClCompile Include="StructToFlat.cpp">
+      <Filter>Файлы ресурсов</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -74,20 +80,32 @@
     <ClInclude Include="ExtendedMath.hpp">
       <Filter>Файлы заголовков\Math</Filter>
     </ClInclude>
-    <ClInclude Include="PlanetGen.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
     <ClInclude Include="ColorMap.h">
       <Filter>Файлы заголовков\GL</Filter>
-    </ClInclude>
-    <ClInclude Include="PlanetData.hpp">
-      <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="SimplexNoise.h">
       <Filter>Файлы заголовков\Math</Filter>
     </ClInclude>
     <ClInclude Include="Shader.hpp">
       <Filter>Файлы заголовков\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Planet.hpp">
+      <Filter>Файлы заголовков\Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="Plates.hpp">
+      <Filter>Файлы заголовков\Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="QuadGeometry.hpp">
+      <Filter>Файлы заголовков\Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="Map.hpp">
+      <Filter>Файлы заголовков\Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="StructToFlat.hpp">
+      <Filter>Файлы заголовков\Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="Voronoi.hpp">
+      <Filter>Файлы заголовков\Generator</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -97,19 +115,22 @@
     <None Include="FragmentShader.frag">
       <Filter>Исходные файлы</Filter>
     </None>
-    <None Include="js\planet-generation.js">
-      <Filter>Исходные файлы</Filter>
-    </None>
-    <None Include="js\sphere-mesh.js">
-      <Filter>Исходные файлы</Filter>
-    </None>
-    <None Include="js\index.js">
-      <Filter>Исходные файлы</Filter>
-    </None>
     <None Include="Points.frag">
       <Filter>Исходные файлы</Filter>
     </None>
     <None Include="Points.vert">
+      <Filter>Исходные файлы</Filter>
+    </None>
+    <None Include="Lines.frag">
+      <Filter>Исходные файлы</Filter>
+    </None>
+    <None Include="Lines.vert">
+      <Filter>Исходные файлы</Filter>
+    </None>
+    <None Include="Triangles.frag">
+      <Filter>Исходные файлы</Filter>
+    </None>
+    <None Include="Triangles.vert">
       <Filter>Исходные файлы</Filter>
     </None>
   </ItemGroup>

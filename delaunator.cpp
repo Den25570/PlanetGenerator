@@ -3,7 +3,7 @@
 namespace delaunator {
 
 	//@see https://stackoverflow.com/questions/33333363/built-in-mod-vs-custom-mod-function-improve-the-performance-of-modulus-op/33333636#33333636
-	inline size_t fast_mod(const size_t i, const size_t c) {
+	inline std::size_t fast_mod(const std::size_t i, const std::size_t c) {
 		return i >= c ? i % c : i;
 	}
 
@@ -12,7 +12,7 @@ namespace delaunator {
 		double sum = x[0];
 		double err = 0.0;
 
-		for (size_t i = 1; i < x.size(); i++) {
+		for (std::size_t i = 1; i < x.size(); i++) {
 			const double k = x[i];
 			const double m = sum + k;
 			err += std::fabs(sum) >= std::fabs(k) ? sum - m + k : k - m + sum;
@@ -239,7 +239,7 @@ namespace delaunator {
 
 		hull_start = i0;
 
-		size_t hull_size = 3;
+		std::size_t hull_size = 3;
 
 		hull_next[i0] = hull_prev[i2] = i1;
 		hull_next[i1] = hull_prev[i0] = i2;
@@ -278,15 +278,15 @@ namespace delaunator {
 			// find a visible edge on the convex hull using edge hash
 			std::size_t start = 0;
 
-			size_t key = hash_key(x, y);
-			for (size_t j = 0; j < m_hash_size; j++) {
+			std::size_t key = hash_key(x, y);
+			for (std::size_t j = 0; j < m_hash_size; j++) {
 				start = m_hash[fast_mod(key + j, m_hash_size)];
 				if (start != INVALID_INDEX && start != hull_next[start]) break;
 			}
 
 			start = hull_prev[start];
-			size_t e = start;
-			size_t q;
+			std::size_t e = start;
+			std::size_t q;
 
 			while (q = hull_next[e], !orient(x, y, coords[2 * e], coords[2 * e + 1], coords[2 * q], coords[2 * q + 1])) { //TODO: does it works in a same way as in JS
 				e = q;
@@ -351,7 +351,7 @@ namespace delaunator {
 
 	double Delaunator::get_hull_area() {
 		std::vector<double> hull_area;
-		size_t e = hull_start;
+		std::size_t e = hull_start;
 		do {
 			hull_area.push_back((coords[2 * e] - coords[2 * hull_prev[e]]) * (coords[2 * e + 1] + coords[2 * hull_prev[e] + 1]));
 			e = hull_next[e];
@@ -366,7 +366,7 @@ namespace delaunator {
 
 		// recursion eliminated with a fixed-size stack
 		while (true) {
-			const size_t b = halfedges[a];
+			const std::size_t b = halfedges[a];
 
 			/* if the pair of triangles doesn't satisfy the Delaunay condition
 			* (p1 is inside the circumcircle of [p0, pl, pr]), flip them,
@@ -383,7 +383,7 @@ namespace delaunator {
 			*          \||/                  \  /
 			*           pr                    pr
 			*/
-			const size_t a0 = 3 * (a / 3);
+			const std::size_t a0 = 3 * (a / 3);
 			ar = a0 + (a + 2) % 3;
 
 			if (b == INVALID_INDEX) {
@@ -398,9 +398,9 @@ namespace delaunator {
 				}
 			}
 
-			const size_t b0 = 3 * (b / 3);
-			const size_t al = a0 + (a + 1) % 3;
-			const size_t bl = b0 + (b + 2) % 3;
+			const std::size_t b0 = 3 * (b / 3);
+			const std::size_t al = a0 + (a + 1) % 3;
+			const std::size_t bl = b0 + (b + 2) % 3;
 
 			const std::size_t p0 = triangles[ar];
 			const std::size_t pr = triangles[a];

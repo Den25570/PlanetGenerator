@@ -16,7 +16,7 @@ float deltaTime = 1.0f;
 
 //UI
 float sphere_radius = 1.0f;
-uint sibdivisions_count = 2;
+std::size_t sibdivisions_count = 2;
 
 GLFWwindow * InitWindow(int * settings) {
 	if (!glfwInit())
@@ -51,36 +51,6 @@ GLFWwindow * InitWindow(int * settings) {
 	return window;
 }
 
-std::vector<vec3> generateFibonacciSphere(int N, float jitter = 0, float randFloat = 0) {
-	std::vector<float> a_latlong;
-
-	// Second algorithm from http://web.archive.org/web/20120421191837/http://www.cgafaq.info/wiki/Evenly_distributed_points_on_sphere
-	const float s = 3.6f / sqrtf(N);
-	const float dlong = M_PI * (3 - sqrtf(5));  /* ~2.39996323 */
-	const float dz = 2.0f / N;
-	for (float k = 0, lng = 0, z = 1 - dz / 2; k != N; k++, z -= dz) {
-		float r = sqrtf(1 - z * z);
-		float latDeg = asin(z) * 180 / M_PI;
-		float lonDeg = lng * 180 / M_PI;
-		//if (_randomLat[k] == = undefined) _randomLat[k] = randFloat() - randFloat();
-		//if (_randomLon[k] == = undefined) _randomLon[k] = randFloat() - randFloat();
-		//latDeg += jitter * _randomLat[k] * (latDeg - Math.asin(Math.max(-1, z - dz * 2 * Math.PI * r / s)) * 180 / Math.PI);
-		//lonDeg += jitter * _randomLon[k] * (s / r * 180 / Math.PI);
-		a_latlong.push_back(latDeg);
-		a_latlong.push_back(((int)trunc(lonDeg) % 360) + lonDeg - trunc(lonDeg));
-		lng += dlong;
-	}
-	std::vector<vec3> out;
-	for (int r = 0; r < a_latlong.size() / 2; r++) {
-		float latRad = a_latlong[r * 2 + 0] / 180.0 * M_PI;
-		float lonRad = a_latlong[r * 2 + 1] / 180.0 * M_PI;
-		out.push_back(vec3(cosf(latRad) * cosf(lonRad),
-			cosf(latRad) * sinf(lonRad),
-			sinf(latRad)));
-	}
-	return out;
-}
-
 int main() {
 	setlocale(LC_CTYPE, "Russian");
 
@@ -94,7 +64,7 @@ int main() {
 	std::cout << "Генерация точек..." << sibdivisions_count << std::endl;
 	lastTime = glfwGetTime();
 
-	std::vector<vec3> fs = generateFibonacciSphere(1000, 0);
+	std::vector<vec3> fs = generateFibonacciSphere(N, 0);
     //Isocahedron planetMesh = Isocahedron(sibdivisions_count, sphere_radius);
 
 	std::cout << "Генерация точек завершена. Точек сгенерированно: " << fs.size() << " (" << glfwGetTime() - lastTime << "s.)" << std::endl;
@@ -105,48 +75,109 @@ int main() {
 
 	std::cout << "Создание триангуляции завершено. Получено треугольников: " << tm.numTriangles << " (" << glfwGetTime() - lastTime << "s.)" << std::endl;
 
-	QuadGeometry quadg;
-	Map map = generateMesh(tm, tm.points.size(), P, 999, &quadg);
-	QuadGeometryV qg = QuadGeometryV(quadg);
+	Planet planet = Planet(tm, seed, N, P);
+	auto quadGeometry = QuadGeometryV(planet.quadGeometry);
 
 	GLfloat* vertices;
 	GLuint* indices;
 
 	//Подготовка меша к рендеру
-	TransformToMesh(vertices, indices, &qg);
-
-
-		//Инициализация буферов
+	drawIndexedTriangles(vertices, indices, &quadGeometry);
+	//Инициализация буферов
 	GLuint EBO, VBO, VAO;
 	glGenBuffers(1, &EBO);
 	glGenBuffers(1, &VBO);
 	glGenVertexArrays(1, &VAO);
 
-	//Привязываем
+	//Привязываем треугольники
 	glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	//STATIC, DYNAMIC, STREAM - в зависимости от частоты изменения данных
-	glBufferData(GL_ARRAY_BUFFER, qg.points.size() * sizeof(GLfloat) * 5, vertices, GL_STATIC_DRAW);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, qg.indices.size() * sizeof(GLuint), indices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, quadGeometry.points.size() * sizeof(GLfloat) * 5, vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, quadGeometry.indices.size() * sizeof(GLuint), indices, GL_STATIC_DRAW);
 	// 3. Устанавливаем указатели на вершинные атрибуты 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 *sizeof(GLfloat)));
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	//4. Отвязываем VAO
 	glBindVertexArray(0);
 
-	GLuint vao;
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-	GLuint vbo;
-	glGenBuffers(1, &vbo);
-// Allocate space and upload the data from CPU to GPU
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, map.r_xyz.size() * sizeof(GLfloat), &map.r_xyz[0], GL_STATIC_DRAW);
+	
+	GLfloat* vertices_voronoi;
+	drawTriangles(vertices_voronoi, &planet.voronoi);
+	//Привязывем точки
+	GLuint VAO_VORONOI, VBO_VORONOI;
+	glGenVertexArrays(1, &VAO_VORONOI);
+	glGenBuffers(1, &VBO_VORONOI);
+
+	glBindVertexArray(VAO_VORONOI);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_VORONOI);
+	
+	glBufferData(GL_ARRAY_BUFFER, planet.voronoi.points.size() * 5 * sizeof(GLfloat), vertices_voronoi, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glBindVertexArray(0);
+
+	//Привязывем точки
+	GLuint VAO_2, VBO_2;
+	glGenVertexArrays(1, &VAO_2);
+	glBindVertexArray(VAO_2);
+	glGenBuffers(1, &VBO_2);
+    // Allocate space and upload the data from CPU to GPU
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_2);
+	glBufferData(GL_ARRAY_BUFFER, planet.map.r_xyz.size() * sizeof(GLfloat), &planet.map.r_xyz[0], GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(0);
+	glBindVertexArray(0);
+
+	GLfloat* vertices_2;
+	//Привязываем линии
+	std::vector<vec3> line_xyz = drawPlateBoundaries(vertices_2, &tm, &planet.map);
+	GLuint VAO_3, VBO_3;
+	glGenVertexArrays(1, &VAO_3);
+	glBindVertexArray(VAO_3);
+	glGenBuffers(1, &VBO_3);
+	// Allocate space and upload the data from CPU to GPU
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_3);
+	glBufferData(GL_ARRAY_BUFFER, line_xyz.size()*7 * sizeof(GLfloat), vertices_2, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (GLvoid*)0);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(0);
+	glBindVertexArray(0);
+
+	GLfloat* vertices_3;
+	//Привязываем линии
+	std::vector<vec3> line_xyz_2 = drawPlateVectors(vertices_3, &tm, &planet.map);
+	GLuint VAO_4, VBO_4;
+	glGenVertexArrays(1, &VAO_4);
+	glBindVertexArray(VAO_4);
+	glGenBuffers(1, &VBO_4);
+	// Allocate space and upload the data from CPU to GPU
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_4);
+	glBufferData(GL_ARRAY_BUFFER, line_xyz_2.size() * 7 * sizeof(GLfloat), vertices_3, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (GLvoid*)0);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(0);
+	glBindVertexArray(0);
+
+	GLfloat* vertices_4;
+	//Привязываем линии
+	std::vector<vec3> line_xyz_3 = drawRivers(vertices_4, &tm, &planet.map);
+	GLuint VAO_5, VBO_5;
+	glGenVertexArrays(1, &VAO_5);
+	glBindVertexArray(VAO_5);
+	glGenBuffers(1, &VBO_5);
+	// Allocate space and upload the data from CPU to GPU
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_5);
+	glBufferData(GL_ARRAY_BUFFER, line_xyz_3.size() * 7 * sizeof(GLfloat), vertices_4, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (GLvoid*)0);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(0);
+	glBindVertexArray(0);
 
 	//Вычисление Камеры
 	main_camera = new Camera(4.0f, Camera_mode::ATTACHED);
@@ -165,20 +196,29 @@ int main() {
 	glfwGetFramebufferSize(window, &width, &height);
 
 	//Загрузка и настройки шейдеров
-	Shader triangleShader = Shader("VertexShader.vert", "FragmentShader.frag");
-	GLuint u_projection = glGetUniformLocation(triangleShader.Program, "u_projection");
-	GLuint u_colormap = glGetUniformLocation(triangleShader.Program, "u_colormap");
-	GLuint u_light_angle = glGetUniformLocation(triangleShader.Program, "u_light_angle");
-	GLuint u_inverse_texture_size = glGetUniformLocation(triangleShader.Program, "u_inverse_texture_size");
-	GLuint u_d = glGetUniformLocation(triangleShader.Program, "u_d");
-	GLuint u_c = glGetUniformLocation(triangleShader.Program, "u_c");
-	GLuint u_slope = glGetUniformLocation(triangleShader.Program, "u_slope");
-	GLuint u_flat = glGetUniformLocation(triangleShader.Program, "u_flat");
-	GLuint u_outline_strength = glGetUniformLocation(triangleShader.Program, "u_outline_strength");
+	Shader indexed_triangle_shader = Shader("VertexShader.vert", "FragmentShader.frag");
+	GLuint u_projection = glGetUniformLocation(indexed_triangle_shader.Program, "u_projection");
+	GLuint u_colormap = glGetUniformLocation(indexed_triangle_shader.Program, "u_colormap");
+	GLuint u_light_angle = glGetUniformLocation(indexed_triangle_shader.Program, "u_light_angle");
+	GLuint u_inverse_texture_size = glGetUniformLocation(indexed_triangle_shader.Program, "u_inverse_texture_size");
+	GLuint u_d = glGetUniformLocation(indexed_triangle_shader.Program, "u_d");
+	GLuint u_c = glGetUniformLocation(indexed_triangle_shader.Program, "u_c");
+	GLuint u_slope = glGetUniformLocation(indexed_triangle_shader.Program, "u_slope");
+	GLuint u_flat = glGetUniformLocation(indexed_triangle_shader.Program, "u_flat");
+	GLuint u_outline_strength = glGetUniformLocation(indexed_triangle_shader.Program, "u_outline_strength");
+
+	Shader triangle_shader = Shader("Triangles.vert", "Triangles.frag");
+	GLuint u_projection_voronoi = glGetUniformLocation(triangle_shader.Program, "u_projection");
+	GLuint u_colormap_voronoi = glGetUniformLocation(indexed_triangle_shader.Program, "u_colormap");
 
 	Shader pointShader = Shader("Points.vert", "Points.frag");
 	GLuint u_projection2 = glGetUniformLocation(pointShader.Program, "u_projection");
 	GLuint u_pointsize2 = glGetUniformLocation(pointShader.Program, "u_pointsize");
+
+	Shader lineShader = Shader("Lines.vert", "Lines.frag");
+	GLuint u_projection_line = glGetUniformLocation(pointShader.Program, "u_projection");
+	GLuint u_multiply_rgba = glGetUniformLocation(pointShader.Program, "u_multiply_rgba");
+	GLuint u_add_rgba = glGetUniformLocation(pointShader.Program, "u_add_rgba");
 
 	//Настройка текстуры
 	int t_width = 64, t_height = 64;
@@ -201,35 +241,72 @@ int main() {
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		triangleShader.Use();
-		glEnable(GL_DEPTH_TEST);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		glBindVertexArray(VAO);		
-
 		main_camera->CalcPosition();
 		glm::mat4 Projection = glm::perspective(glm::radians(main_camera->FOV), (float)width / (float)height, main_camera->min_p, main_camera->max_p);
 		glm::mat4 View = glm::lookAt(main_camera->position, glm::vec3(0, 0, 0), glm::vec3(0, 4, 0));
 		glm::mat4 Model = glm::mat4(1.0f);
 		glm::mat4 MVP = Projection * View * Model;
 
+		//Sphere render
+		/*indexed_triangle_shader.Use();
+		glEnable(GL_DEPTH_TEST);
+		glBindVertexArray(VAO);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glBindTexture(GL_TEXTURE_2D, texture);
 		glUniform2f(u_light_angle, cosf(M_PI / 3.0f), sinf(M_PI / 3.0f));
-		glUniform1f(u_inverse_texture_size, 1.0f / 4098.0f);
+		glUniform1f(u_inverse_texture_size, 1.0f / 4096.0f);
 		glUniform1f(u_d, 60.0f);
 		glUniform1f(u_c, 0.15f);
 		glUniform1f(u_slope, 6.0f);
 		glUniform1f(u_flat, 2.5f);
 		glUniform1f(u_outline_strength, 5.0f);
 		glUniformMatrix4fv(u_projection, 1, GL_FALSE, &MVP[0][0]);
+		glDrawElements(GL_TRIANGLES, quadGeometry.indices.size(), GL_UNSIGNED_INT, 0);*/
 
-		glDrawElements(GL_TRIANGLES, qg.indices.size(), GL_UNSIGNED_INT, 0);
+		triangle_shader.Use();
+		glEnable(GL_DEPTH_TEST);
+		glBindVertexArray(VAO_VORONOI);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		glUniformMatrix4fv(u_projection_voronoi, 1, GL_FALSE, &MVP[0][0]);
+		glDrawArrays(GL_TRIANGLES, 0, planet.voronoi.points.size() * 5);
+		glBindVertexArray(0);
 
-		pointShader.Use();
-		glBindVertexArray(vao);
+		//line render
+		/*lineShader.Use();
+		glDisable(GL_DEPTH_TEST);
+		glBindVertexArray(VAO_3);
+		glUniformMatrix4fv(u_projection_line, 1, GL_FALSE, &MVP[0][0]);
+		glUniform4f(u_add_rgba, 0,0,0,0);
+		glUniform4f(u_multiply_rgba, 1,1,1,1);
+		glDrawArrays(GL_LINES, 0, line_xyz.size()*7);*/
+
+		//line render
+		/*lineShader.Use();
+		glDisable(GL_DEPTH_TEST);
+		glBindVertexArray(VAO_4);
+		glUniformMatrix4fv(u_projection_line, 1, GL_FALSE, &MVP[0][0]);
+		glUniform4f(u_add_rgba, 0, 0, 0, 0);
+		glUniform4f(u_multiply_rgba, 1, 1, 1, 1);
+		glDrawArrays(GL_LINES, 0, line_xyz_2.size() * 7);*/
+
+		//line render
+		lineShader.Use();
+		glDisable(GL_DEPTH_TEST);
+		glBindVertexArray(VAO_5);
+		glUniformMatrix4fv(u_projection_line, 1, GL_FALSE, &MVP[0][0]);
+		glUniform4f(u_add_rgba, 0, 0, 0, 0);
+		glUniform4f(u_multiply_rgba, 1, 1, 1, 1);
+		glDrawArrays(GL_LINES, 0, line_xyz_3.size() * 7);
+
+		//Point render
+		/*pointShader.Use();
+		glEnable(GL_DEPTH_TEST);
+		glBindVertexArray(VAO_2);
 		glUniformMatrix4fv(u_projection2, 1, GL_FALSE, &MVP[0][0]);
 		glUniform1f(u_pointsize2, 0.1f + 100.0f / sqrt(map.r_xyz.size() / 3));
 		glPolygonMode(GL_FRONT_AND_BACK, GL_POINTS);
-		glDrawArrays(GL_POINTS, 0, map.r_xyz.size()/3);
+		glDrawArrays(GL_POINTS, 0, map.r_xyz.size()/3);*/
 
 		//Обновить цветовой буфер
 		glfwSwapBuffers(window);
@@ -242,12 +319,14 @@ int main() {
 }
 
 //Подготовка меша к рендеру
-void TransformToMesh(GLfloat * &vertices, GLuint * &indices, const QuadGeometryV * planetMesh)
+void drawIndexedTriangles(GLfloat * &vertices, GLuint * &indices, const QuadGeometryV * planetMesh)
 {
 	vertices = (GLfloat*)malloc(planetMesh->points.size() * sizeof(GLfloat) * 5);
 	indices = (GLuint*)malloc(planetMesh->indices.size() * sizeof(GLuint));
 
-	for (uint i = 0; i < planetMesh->points.size(); i++)
+	std::vector<GLfloat> v;
+
+	for (std::size_t i = 0; i < planetMesh->points.size(); i++)
 	{
 		vertices[i * 5 + 0] = planetMesh->points[i].x;
 		vertices[i * 5 + 1] = planetMesh->points[i].y;
@@ -256,16 +335,106 @@ void TransformToMesh(GLfloat * &vertices, GLuint * &indices, const QuadGeometryV
 		vertices[i * 5 + 3] = planetMesh->tem_mois[i].x;
 		vertices[i * 5 + 4] = planetMesh->tem_mois[i].y;
 	}
-
-	/*int i = 0;
-	for (auto it = planetMesh->triangles.cbegin(); it != planetMesh->triangles.cend(); it++, i += 3)
-	{
-		indices[i + 0] = (*it)[0];
-		indices[i + 1] = (*it)[1];
-		indices[i + 2] = (*it)[2];
-	}*/
 	for (int i = 0; i < planetMesh->indices.size(); i++)
 		indices[i] = planetMesh->indices[i];
+}
+
+void drawTriangles(GLfloat * &vertices, const Voronoi * planetMesh)
+{
+	vertices = (GLfloat*)malloc(planetMesh->points.size() * sizeof(GLfloat) * 5);
+
+	for (std::size_t i = 0; i < planetMesh->points.size(); i++)
+	{
+		vertices[i * 5 + 0] = planetMesh->points[i].x;
+		vertices[i * 5 + 1] = planetMesh->points[i].y;
+		vertices[i * 5 + 2] = planetMesh->points[i].z;
+
+		vertices[i * 5 + 3] = planetMesh->tm[i].x;
+		vertices[i * 5 + 4] = planetMesh->tm[i].y;
+	}
+}
+
+std::vector<vec3> drawPlateBoundaries(GLfloat * &vertices, TriangleMesh * mesh, Map * map) {
+	std::vector<vec3> line_xyz;
+	std::vector<vec4> line_rgba;
+	for (int s = 0; s < mesh->numSides; s++) {
+		int begin_r = mesh->s_begin_r(s);
+		int	end_r = mesh->s_end_r(s);
+		if (map->plates.r_plate[begin_r] != map->plates.r_plate[end_r]) {
+			int inner_t = mesh->s_inner_t(s);
+			int	outer_t = mesh->s_outer_t(s);
+
+			line_xyz.push_back(vec3(map->t_xyz[3 * inner_t + 0], map->t_xyz[3 * inner_t + 1], map->t_xyz[3 * inner_t + 2]));
+			line_xyz.push_back(vec3(map->t_xyz[3 * outer_t + 0], map->t_xyz[3 * outer_t + 1], map->t_xyz[3 * outer_t + 2]));
+
+			line_rgba.push_back(vec4(1, 1, 1, 1));
+			line_rgba.push_back(vec4(1, 1, 1, 1));
+		}
+	}
+
+	vertices = (GLfloat*)malloc(line_xyz.size() * sizeof(GLfloat) * 7);
+	for (int i = 0; i < line_xyz.size(); i++) {
+		vertices[i * 7 + 0] = line_xyz[i].x;
+		vertices[i * 7 + 1] = line_xyz[i].y;
+		vertices[i * 7 + 2] = line_xyz[i].z;
+		vertices[i * 7 + 3] = line_rgba[i].r;
+		vertices[i * 7 + 4] = line_rgba[i].g;
+		vertices[i * 7 + 5] = line_rgba[i].b;
+		vertices[i * 7 + 6] = line_rgba[i].a;
+	}
+	return line_xyz;
+}
+
+std::vector<vec3> drawPlateVectors(GLfloat * &vertices, TriangleMesh * mesh, Map * map) {
+	std::vector<vec3> line_xyz;
+	std::vector<vec4> line_rgba;
+	for (int r = 0; r < mesh->numRegions; r++) {
+		line_xyz.push_back(vec3(map->r_xyz[r*3+0], map->r_xyz[r * 3 + 1], map->r_xyz[r * 3 + 2]));
+		line_rgba.push_back(vec4(1, 1, 1, 1));
+		line_xyz.push_back(vec3(map->r_xyz[r * 3 + 0], map->r_xyz[r * 3 + 1], map->r_xyz[r * 3 + 2]) + map->plates.plate_vec[map->plates.r_plate[r]] * (2 / sqrtf(1000)));
+		line_rgba.push_back(vec4(1, 0, 0, 0));
+	}
+
+	vertices = (GLfloat*)malloc(line_xyz.size() * sizeof(GLfloat) * 7);
+	for (int i = 0; i < line_xyz.size(); i++) {
+		vertices[i * 7 + 0] = line_xyz[i].x;
+		vertices[i * 7 + 1] = line_xyz[i].y;
+		vertices[i * 7 + 2] = line_xyz[i].z;
+		vertices[i * 7 + 3] = line_rgba[i].r;
+		vertices[i * 7 + 4] = line_rgba[i].g;
+		vertices[i * 7 + 5] = line_rgba[i].b;
+		vertices[i * 7 + 6] = line_rgba[i].a;
+	}
+	return line_xyz;
+}
+
+std::vector<vec3> drawRivers(GLfloat * &vertices, TriangleMesh * mesh, Map * map) {
+	std::vector<vec3> line_xyz;
+	std::vector<vec4> line_rgba;
+	for (int s = 0; s < mesh->numSides; s++) {
+		if (map->s_flow[s] > 1) {
+			float flow = 0.1f * sqrtf(map->s_flow[s]);
+			int inner_t = mesh->s_inner_t(s);
+			int	outer_t = mesh->s_outer_t(s);
+			line_xyz.push_back(vec3(map->t_xyz[3 * inner_t], map->t_xyz[3 * inner_t + 1], map->t_xyz[3 * inner_t + 2]));
+			line_xyz.push_back(vec3(map->t_xyz[3 * outer_t], map->t_xyz[3 * outer_t + 1], map->t_xyz[3 * outer_t + 2]));
+			if (flow > 1) flow = 1;
+			vec4 rgba_premultiplied = vec4(0.2f * flow, 0.5f * flow, 0.7f * flow, flow);
+			line_rgba.push_back(rgba_premultiplied);
+			line_rgba.push_back(rgba_premultiplied);
+		}
+	}
+	vertices = (GLfloat*)malloc(line_xyz.size() * sizeof(GLfloat) * 7);
+	for (int i = 0; i < line_xyz.size(); i++) {
+		vertices[i * 7 + 0] = line_xyz[i].x;
+		vertices[i * 7 + 1] = line_xyz[i].y;
+		vertices[i * 7 + 2] = line_xyz[i].z;
+		vertices[i * 7 + 3] = line_rgba[i].r;
+		vertices[i * 7 + 4] = line_rgba[i].g;
+		vertices[i * 7 + 5] = line_rgba[i].b;
+		vertices[i * 7 + 6] = line_rgba[i].a;
+	}
+	return line_xyz;
 }
 
 //Обработка нажатий клавиш
@@ -291,3 +460,5 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
 		main_camera->inclination += deltaTime * main_camera->movingSpeed;
 	}
 }
+
+
