@@ -63,6 +63,13 @@ struct TriangleMesh {
 		update();
 	}
 
+	~TriangleMesh() {
+		verticles.clear();
+		triangles.clear();
+		halfedges.clear();
+		points.clear();
+	}
+
 	void Update_d(std::vector<std::vector<std::size_t>> _points, std::vector<std::size_t> _triangles, std::vector<std::size_t> _halfedges);
 
 	void update();
@@ -101,9 +108,11 @@ struct TriangleMesh {
 	std::vector<std::size_t> r_circulate_t(std::size_t r);
 };
 
-std::vector<vec3> generateFibonacciSphere(int N, float jitter = 0, float randFloat = 0);
+float randFloat();
 
-TriangleMesh generateDelanuaySphere(std::vector<vec3>* verticles);
+std::vector<vec3> generateFibonacciSphere(int N, float jitter = 0);
+
+TriangleMesh * generateDelanuaySphere(std::vector<vec3>* verticles);
 void addSouthPoleToMesh(std::size_t southPoleId, Delaunator * delanuay, std::vector<vec3> * p);
 
 

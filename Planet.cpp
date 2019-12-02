@@ -8,9 +8,9 @@
 /* Calculate the centroid and push it onto an array */
 void pushCentroidOfTriangle(std::vector<float> * out, float ax, float ay, float az, float bx, float by, float bz, float cx, float cy, float cz) {
 	// TODO: renormalize to radius 1
-	out->push_back((ax + bx + cx) / 3);
-	out->push_back((ay + by + cy) / 3);
-	out->push_back((az + bz + cz) / 3);
+	out->push_back((ax + bx + cx) / 3.0f);
+	out->push_back((ay + by + cy) / 3.0f);
+	out->push_back((az + bz + cz) / 3.0f);
 }
 
 
@@ -76,7 +76,7 @@ void Planet::generateMap() {
 	assignRegionElevation();
 	// TODO: assign region moisture in a better way!
 	for (int r = 0; r < mesh.numRegions; r++) {
-		map.r_moisture[r] = (map.plates.r_plate[r] % 10) / 10.0f;
+		map.r_moisture[r] = 0.98;//(map.plates.r_plate[r] % 10) / 10.0f;
 	}
 
 	assignTriangleValues();
@@ -85,6 +85,8 @@ void Planet::generateMap() {
 
 	setMap();
 	generateVoronoiGeometry();
+
+	quadGeometryV = QuadGeometryV(quadGeometry);
 }
 
 void Planet::assignTriangleValues() {
@@ -243,7 +245,7 @@ void Planet::generatePlates() {
 
 void Planet::generateOceans() {
 	for (auto region : map.plates.region_set) {
-		if (rand() % (10) < 5) {
+		if (rand() % (10) < 7) {
 			map.plates.plates_is_ocean.push_back(region);
 			// TODO: either make tiny plates non-ocean, or make sure tiny plates don't create seeds for rivers
 		}
@@ -277,7 +279,7 @@ void Planet::assignRegionElevation() {
 	std::vector<std::size_t> r_distance_c = assignDistanceField(borders.coastline_r, stop_r);
 
 	for (auto r = 0; r < mesh.numRegions; r++) {
-		float a = r_distance_a[r] + epsilon;
+		float a = r_distance_a[r] + epsilon / 2;
 		float b = r_distance_b[r] + epsilon;
 		float c = r_distance_c[r] + epsilon;
 		if (a == std::numeric_limits<std::size_t>::max() + epsilon && b == std::numeric_limits<std::size_t>::max() + epsilon) {

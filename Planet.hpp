@@ -12,6 +12,7 @@ public:
 	Map map;
 	TriangleMesh mesh;
 	QuadGeometry quadGeometry;
+	QuadGeometryV quadGeometryV;
 	Voronoi voronoi;
 
 	Planet() { };

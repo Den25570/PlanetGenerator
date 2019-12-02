@@ -128,6 +128,7 @@
     <ClCompile Include="Planet.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="SimplexNoise.cpp" />
+    <ClCompile Include="VAO.cpp" />
     <ClCompile Include="StructToFlat.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -144,6 +145,7 @@
     <ClInclude Include="Shader.hpp" />
     <ClInclude Include="SimplexNoise.h" />
     <ClInclude Include="StructToFlat.hpp" />
+    <ClInclude Include="VAO.hpp" />
     <ClInclude Include="Voronoi.hpp" />
   </ItemGroup>
   <ItemGroup>

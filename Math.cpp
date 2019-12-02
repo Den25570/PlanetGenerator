@@ -10,7 +10,7 @@ std::vector<vec2>* stereographicProjection(std::vector<vec3> * points)
 	auto new_points = new std::vector<vec2>();
 	for (auto p : *points)
 	{
-		new_points->push_back(vec2(p.x / (1 - p.z), p.y / (1 - p.z)));
+		new_points->push_back(vec2(p.x / (1.0f - p.z), p.y / (1.0f - p.z)));
 	}
 	return new_points;
 }

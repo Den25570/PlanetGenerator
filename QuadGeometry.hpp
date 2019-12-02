@@ -13,6 +13,7 @@ public:
 	std::vector<vec3> points;  //xyz
 	std::vector<vec2> tem_mois; //tm
 
+	QuadGeometryV() {};
 	QuadGeometryV(QuadGeometry qg)
 	{
 		indices = qg.indices;

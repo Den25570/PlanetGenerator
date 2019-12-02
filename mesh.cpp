@@ -1,7 +1,8 @@
 #include "ExtendedMath.hpp"
 #include "mesh.h"
 #include <queue>
-
+#include <algorithm>
+#include <limits>
 #include "StructToFlat.hpp"
 
 Isocahedron::Isocahedron(int subdivisions_num, float radius, bool onlyPoints)
@@ -158,9 +159,7 @@ void Isocahedron::normalize(float sphereRadius)
 	for (auto it = verticles.begin(); it != verticles.end(); it++)
 	{
 		float length = sqrtf(it->x * it->x + it->y * it->y  + it->z * it->z);
-		it->x *= sphereRadius / length;
-		it->y *= sphereRadius / length;
-		it->z *= sphereRadius / length;
+		(*it) *= sphereRadius / length;
 	}
 }
 
@@ -283,69 +282,76 @@ int TriangleMesh::s_outer_t(int s) { return s_to_t(halfedges[s]); }
 
 int TriangleMesh::s_opposite_s(int s) { return halfedges[s]; }
 
-std::vector<std::size_t> TriangleMesh::t_circulate_s(std::size_t t) { auto out_s = std::vector<std::size_t>(3); for (std::size_t i = 0; i < 3; i++) { out_s[i] = 3 * t + i; } return out_s; }
-std::vector<std::size_t> TriangleMesh::t_circulate_r(std::size_t t) { auto out_r = std::vector<std::size_t>(3); for (std::size_t i = 0; i < 3; i++) { out_r[i] = triangles[3 * t + i]; } return out_r; }
-std::vector<std::size_t> TriangleMesh::t_circulate_t(std::size_t t) { auto out_t = std::vector<std::size_t>(3); for (std::size_t i = 0; i < 3; i++) { out_t[i] = s_outer_t(3 * t + i); } return out_t; }
+std::vector<std::size_t> TriangleMesh::t_circulate_s(std::size_t t) { auto result = std::vector<std::size_t>(3); for (std::size_t i = 0; i < 3; i++) { result[i] = 3 * t + i; } return result; }
+std::vector<std::size_t> TriangleMesh::t_circulate_r(std::size_t t) { auto result = std::vector<std::size_t>(3); for (std::size_t i = 0; i < 3; i++) { result[i] = triangles[3 * t + i]; } return result; }
+std::vector<std::size_t> TriangleMesh::t_circulate_t(std::size_t t) { auto result = std::vector<std::size_t>(3); for (std::size_t i = 0; i < 3; i++) { result[i] = s_outer_t(3 * t + i); } return result; }
 
 std::vector<std::size_t> TriangleMesh::r_circulate_s(std::size_t r) {
 	const int s0 = r_in_s[r];
 	auto incoming = s0;
-	std::vector<std::size_t> out_s;
+	std::vector<std::size_t> result;
 	do {
-		out_s.push_back(halfedges[incoming]);
+		result.push_back(halfedges[incoming]);
 		auto outgoing = s_next_s(incoming);
 		incoming = halfedges[outgoing];
 	} while (incoming != -1 && incoming != s0);
-	return out_s;
+	return result;
 }
 
 std::vector<std::size_t> TriangleMesh::r_circulate_r(std::size_t r) {
 	const int s0 = r_in_s[r];
 	auto incoming = s0;
-	std::vector<std::size_t> out_r;
+	std::vector<std::size_t> result;
 	do {
-		out_r.push_back(s_begin_r(incoming));
+		result.push_back(s_begin_r(incoming));
 		auto outgoing = s_next_s(incoming);
 		incoming = halfedges[outgoing];
 	} while (incoming != -1 && incoming != s0);
-	return out_r;
+	return result;
 }
 
 std::vector<std::size_t> TriangleMesh::r_circulate_t(std::size_t r) {
 	const int s0 = r_in_s[r];
 	auto incoming = s0;
-	std::vector<std::size_t> out_t;
+	std::vector<std::size_t> result;
 	do {
-		out_t.push_back(s_to_t(incoming));
+		result.push_back(s_to_t(incoming));
 		auto outgoing = s_next_s(incoming);
 		incoming = halfedges[outgoing];
 	} while (incoming != -1 && incoming != s0);
-	return out_t;
+	return result;
 }
 
-std::vector<vec3> generateFibonacciSphere(int N, float jitter, float randFloat) {
-	std::vector<float> a_latlong;
+float randFloat()
+{
+	return ((float)rand() / RAND_MAX);
+}
 
-	// Second algorithm from http://web.archive.org/web/20120421191837/http://www.cgafaq.info/wiki/Evenly_distributed_points_on_sphere
+#define undefined std::numeric_limits<int>::max()
+std::vector<vec3> generateFibonacciSphere(int N, float jitter) {
+	std::vector<float> a_latlong;
+	std::vector<float> rand_latitude_shift = std::vector<float>(N, undefined);
+	std::vector<float> rand_longitude_shift = std::vector<float>(N, undefined);
+
 	const float s = 3.6f / sqrtf(N);
-	const float dlong = M_PI * (3 - sqrtf(5));  /* ~2.39996323 */
 	const float dz = 2.0f / N;
 	for (float k = 0, lng = 0, z = 1 - dz / 2; k != N; k++, z -= dz) {
-		float r = sqrtf(1 - z * z);
-		float latDeg = asin(z) * 180 / M_PI;
-		float lonDeg = lng * 180 / M_PI;
-		//if (_randomLat[k] == undefined) _randomLat[k] = randFloat() - randFloat();
-		//if (_randomLon[k] == undefined) _randomLon[k] = randFloat() - randFloat();
-		//latDeg += jitter * _randomLat[k] * (latDeg - Math.asin(Math.max(-1, z - dz * 2 * Math.PI * r / s)) * 180 / Math.PI);
-		//lonDeg += jitter * _randomLon[k] * (s / r * 180 / Math.PI);
-		a_latlong.push_back(latDeg);
-		a_latlong.push_back(((int)trunc(lonDeg) % 360) + lonDeg - trunc(lonDeg));
-		lng += dlong;
+		float r = sqrtf(1.0f - z * z);
+		float latitude_deg = asinf(z) * 180.0f / M_PI;
+		float longitude_deg = lng * 180.0f / M_PI;
+		if (rand_latitude_shift[k] == undefined) rand_latitude_shift[k] = randFloat() - randFloat();
+		if (rand_longitude_shift[k] == undefined) rand_longitude_shift[k] = randFloat() - randFloat();
+		latitude_deg += jitter * rand_latitude_shift[k] * (latitude_deg - asin(max(-1.0, z - dz * 2 * M_PI * r / s)) * 180 / M_PI);
+		longitude_deg += jitter * rand_longitude_shift[k] * (s / r * 180.0 / M_PI);
+		a_latlong.push_back(latitude_deg);
+		a_latlong.push_back(((int)trunc(longitude_deg) % 360) + longitude_deg - trunc(longitude_deg));
+		lng += s / r;
 	}
+
 	std::vector<vec3> out;
 	for (int r = 0; r < a_latlong.size() / 2; r++) {
-		float latRad = a_latlong[r * 2 + 0] / 180.0 * M_PI;
-		float lonRad = a_latlong[r * 2 + 1] / 180.0 * M_PI;
+		float latRad = a_latlong[r * 2 + 0] / 180.0f * M_PI;
+		float lonRad = a_latlong[r * 2 + 1] / 180.0f * M_PI;
 		out.push_back(vec3(cosf(latRad) * cosf(lonRad),
 			cosf(latRad) * sinf(lonRad),
 			sinf(latRad)));
@@ -353,7 +359,7 @@ std::vector<vec3> generateFibonacciSphere(int N, float jitter, float randFloat) 
 	return out;
 }
 
-TriangleMesh generateDelanuaySphere(std::vector<vec3>* verticles) {
+TriangleMesh * generateDelanuaySphere(std::vector<vec3>* verticles) {
 	Delaunator delaunay = Delaunator(vec2ToDouble(stereographicProjection((verticles))));
 
 	std::vector<vec3> points;
@@ -361,11 +367,11 @@ TriangleMesh generateDelanuaySphere(std::vector<vec3>* verticles) {
 		points.push_back((*verticles)[i]);
 
 	points.push_back(vec3(0.0f, 0.0f, 1.0f));
-	addSouthPoleToMesh(points.size() - 1, &delaunay, &points);
+    addSouthPoleToMesh(points.size() - 1, &delaunay, &points);
 
 	auto dummy_r_vertex = std::vector<std::vector<std::size_t>>(verticles->size() + 1, std::vector<std::size_t>(2, 0));
 
-	TriangleMesh mesh = TriangleMesh(0,
+	TriangleMesh * mesh = new TriangleMesh(0,
 		delaunay.triangles.size(),
 		dummy_r_vertex,
 		delaunay.triangles,

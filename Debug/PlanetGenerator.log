@@ -1,10 +1,12 @@
 ﻿  App.cpp
-c:\users\lee\source\repos\planetgenerator\planetgenerator\quadgeometry.hpp(19): warning C4018: <: несоответствие типов со знаком и без знака
-c:\users\lee\source\repos\planetgenerator\planetgenerator\quadgeometry.hpp(22): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\lee\source\repos\planetgenerator\planetgenerator\quadgeometry.hpp(20): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\lee\source\repos\planetgenerator\planetgenerator\quadgeometry.hpp(23): warning C4018: <: несоответствие типов со знаком и без знака
 c:\users\lee\source\repos\planetgenerator\planetgenerator\voronoi.hpp(16): warning C4018: <: несоответствие типов со знаком и без знака
 c:\users\lee\source\repos\planetgenerator\planetgenerator\voronoi.hpp(18): warning C4018: <: несоответствие типов со знаком и без знака
-c:\users\lee\source\repos\planetgenerator\planetgenerator\app.cpp(338): warning C4018: <: несоответствие типов со знаком и без знака
-c:\users\lee\source\repos\planetgenerator\planetgenerator\app.cpp(376): warning C4018: <: несоответствие типов со знаком и без знака
-c:\users\lee\source\repos\planetgenerator\planetgenerator\app.cpp(399): warning C4018: <: несоответствие типов со знаком и без знака
-c:\users\lee\source\repos\planetgenerator\planetgenerator\app.cpp(428): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\lee\source\repos\planetgenerator\planetgenerator\app.cpp(252): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\lee\source\repos\planetgenerator\planetgenerator\app.cpp(269): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\lee\source\repos\planetgenerator\planetgenerator\app.cpp(305): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\lee\source\repos\planetgenerator\planetgenerator\app.cpp(328): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\lee\source\repos\planetgenerator\planetgenerator\app.cpp(358): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\lee\source\repos\planetgenerator\planetgenerator\app.cpp(396): warning C4244: +=: преобразование "double" в "float", возможна потеря данных
   PlanetGenerator.vcxproj -> C:\Users\Lee\source\repos\PlanetGenerator\Debug\PlanetGenerator.exe

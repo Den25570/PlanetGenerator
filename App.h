@@ -21,17 +21,16 @@
 #include "Camera.h"
 #include "ColorMap.h"
 #include "Shader.hpp"
+#include "VAO.hpp"
 
 #include "Planet.hpp"
 
-int N = 5000;
-int P = 20;
-int seed = 12300;
-
 GLFWwindow *  InitWindow(int * settings);
-void drawIndexedTriangles(GLfloat * &vertices, GLuint * &indices, const QuadGeometryV * planetMesh);
-void drawTriangles(GLfloat * &vertices, const Voronoi * planetMesh);
-std::vector<vec3> drawPlateBoundaries(GLfloat * &vertices, TriangleMesh * mesh, Map * map);
-std::vector<vec3> drawPlateVectors(GLfloat * &vertices, TriangleMesh * mesh, Map * map);
-std::vector<vec3> drawRivers(GLfloat * &vertices, TriangleMesh * mesh, Map * map);
+void drawTriangleMesh(std::vector<GLfloat>& vertices, std::vector<GLuint>& indices, const TriangleMesh * planetMesh);
+void drawIndexedTriangles(std::vector<GLfloat>& vertices, std::vector<GLuint>& indices, const QuadGeometryV * planetMesh);
+void drawTriangles(std::vector<GLfloat> &vertices, const Voronoi * planetMesh);
+std::vector<vec3> drawPlateBoundaries(std::vector<GLfloat> &vertices, TriangleMesh * mesh, Map * map);
+std::vector<vec3> drawPlateVectors(std::vector<GLfloat> &vertices, TriangleMesh * mesh, Map * map);
+std::vector<vec3> drawRivers(std::vector<GLfloat> &vertices, TriangleMesh * mesh, Map * map);
 void key_callback(GLFWwindow * window, int key, int scancode, int action, int mode);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);

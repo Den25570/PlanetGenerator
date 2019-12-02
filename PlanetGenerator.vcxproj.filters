@@ -63,6 +63,9 @@
     <ClCompile Include="StructToFlat.cpp">
       <Filter>Файлы ресурсов</Filter>
     </ClCompile>
+    <ClCompile Include="VAO.cpp">
+      <Filter>Файлы ресурсов\GL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="delaunator.hpp">
@@ -106,6 +109,9 @@
     </ClInclude>
     <ClInclude Include="Voronoi.hpp">
       <Filter>Файлы заголовков\Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="VAO.hpp">
+      <Filter>Файлы заголовков\GL</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

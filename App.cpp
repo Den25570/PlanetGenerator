@@ -14,9 +14,14 @@ GLFWwindow* window;
 Camera* main_camera;
 float deltaTime = 1.0f;
 
-//UI
-float sphere_radius = 1.0f;
-std::size_t sibdivisions_count = 2;
+//Вынести в UI
+float zoom = 4.0f;
+int region_number = 50000;
+int plates_number = 20;
+int seed = 12300;
+
+//Освещение
+
 
 GLFWwindow * InitWindow(int * settings) {
 	if (!glfwInit())
@@ -55,145 +60,19 @@ int main() {
 	setlocale(LC_CTYPE, "Russian");
 
 	double lastTime = glfwGetTime();
-	std::cout << "Инициализация окна..." << std::endl;
 
 	window = InitWindow(&settings[0]);
 	glfwSetKeyCallback(window, key_callback);
+	glfwSetScrollCallback(window, scroll_callback);
 
-	std::cout << "Окно инициализированно. (" << glfwGetTime() - lastTime << "s.)" << std::endl;
-	std::cout << "Генерация точек..." << sibdivisions_count << std::endl;
-	lastTime = glfwGetTime();
+	std::vector<vec3> fs = generateFibonacciSphere(region_number, 0.1f);
+	TriangleMesh * tm = generateDelanuaySphere(&fs);
+	Planet planet = Planet(*tm, seed, region_number, plates_number);
 
-	std::vector<vec3> fs = generateFibonacciSphere(N, 0);
-    //Isocahedron planetMesh = Isocahedron(sibdivisions_count, sphere_radius);
+	fs.clear();
+	fs.shrink_to_fit();
 
-	std::cout << "Генерация точек завершена. Точек сгенерированно: " << fs.size() << " (" << glfwGetTime() - lastTime << "s.)" << std::endl;
-	std::cout << "Создание триангуляции..." << std::endl;
-	lastTime = glfwGetTime();
-
-	TriangleMesh tm = generateDelanuaySphere(&fs);
-
-	std::cout << "Создание триангуляции завершено. Получено треугольников: " << tm.numTriangles << " (" << glfwGetTime() - lastTime << "s.)" << std::endl;
-
-	Planet planet = Planet(tm, seed, N, P);
-	auto quadGeometry = QuadGeometryV(planet.quadGeometry);
-
-	GLfloat* vertices;
-	GLuint* indices;
-
-	//Подготовка меша к рендеру
-	drawIndexedTriangles(vertices, indices, &quadGeometry);
-	//Инициализация буферов
-	GLuint EBO, VBO, VAO;
-	glGenBuffers(1, &EBO);
-	glGenBuffers(1, &VBO);
-	glGenVertexArrays(1, &VAO);
-
-	//Привязываем треугольники
-	glBindVertexArray(VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	//STATIC, DYNAMIC, STREAM - в зависимости от частоты изменения данных
-	glBufferData(GL_ARRAY_BUFFER, quadGeometry.points.size() * sizeof(GLfloat) * 5, vertices, GL_STATIC_DRAW);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, quadGeometry.indices.size() * sizeof(GLuint), indices, GL_STATIC_DRAW);
-	// 3. Устанавливаем указатели на вершинные атрибуты 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 *sizeof(GLfloat)));
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-	//4. Отвязываем VAO
-	glBindVertexArray(0);
-
-	
-	GLfloat* vertices_voronoi;
-	drawTriangles(vertices_voronoi, &planet.voronoi);
-	//Привязывем точки
-	GLuint VAO_VORONOI, VBO_VORONOI;
-	glGenVertexArrays(1, &VAO_VORONOI);
-	glGenBuffers(1, &VBO_VORONOI);
-
-	glBindVertexArray(VAO_VORONOI);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO_VORONOI);
-	
-	glBufferData(GL_ARRAY_BUFFER, planet.voronoi.points.size() * 5 * sizeof(GLfloat), vertices_voronoi, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-	glBindVertexArray(0);
-
-	//Привязывем точки
-	GLuint VAO_2, VBO_2;
-	glGenVertexArrays(1, &VAO_2);
-	glBindVertexArray(VAO_2);
-	glGenBuffers(1, &VBO_2);
-    // Allocate space and upload the data from CPU to GPU
-	glBindBuffer(GL_ARRAY_BUFFER, VBO_2);
-	glBufferData(GL_ARRAY_BUFFER, planet.map.r_xyz.size() * sizeof(GLfloat), &planet.map.r_xyz[0], GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(0);
-	glBindVertexArray(0);
-
-	GLfloat* vertices_2;
-	//Привязываем линии
-	std::vector<vec3> line_xyz = drawPlateBoundaries(vertices_2, &tm, &planet.map);
-	GLuint VAO_3, VBO_3;
-	glGenVertexArrays(1, &VAO_3);
-	glBindVertexArray(VAO_3);
-	glGenBuffers(1, &VBO_3);
-	// Allocate space and upload the data from CPU to GPU
-	glBindBuffer(GL_ARRAY_BUFFER, VBO_3);
-	glBufferData(GL_ARRAY_BUFFER, line_xyz.size()*7 * sizeof(GLfloat), vertices_2, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (GLvoid*)0);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(0);
-	glBindVertexArray(0);
-
-	GLfloat* vertices_3;
-	//Привязываем линии
-	std::vector<vec3> line_xyz_2 = drawPlateVectors(vertices_3, &tm, &planet.map);
-	GLuint VAO_4, VBO_4;
-	glGenVertexArrays(1, &VAO_4);
-	glBindVertexArray(VAO_4);
-	glGenBuffers(1, &VBO_4);
-	// Allocate space and upload the data from CPU to GPU
-	glBindBuffer(GL_ARRAY_BUFFER, VBO_4);
-	glBufferData(GL_ARRAY_BUFFER, line_xyz_2.size() * 7 * sizeof(GLfloat), vertices_3, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (GLvoid*)0);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(0);
-	glBindVertexArray(0);
-
-	GLfloat* vertices_4;
-	//Привязываем линии
-	std::vector<vec3> line_xyz_3 = drawRivers(vertices_4, &tm, &planet.map);
-	GLuint VAO_5, VBO_5;
-	glGenVertexArrays(1, &VAO_5);
-	glBindVertexArray(VAO_5);
-	glGenBuffers(1, &VBO_5);
-	// Allocate space and upload the data from CPU to GPU
-	glBindBuffer(GL_ARRAY_BUFFER, VBO_5);
-	glBufferData(GL_ARRAY_BUFFER, line_xyz_3.size() * 7 * sizeof(GLfloat), vertices_4, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (GLvoid*)0);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(0);
-	glBindVertexArray(0);
-
-	//Вычисление Камеры
-	main_camera = new Camera(4.0f, Camera_mode::ATTACHED);
-
-	// Включить тест глубины
-	glEnable(GL_DEPTH_TEST);
-	// Фрагмент будет выводиться только в том, случае, если он находится ближе к камере, чем предыдущий
-	glDepthFunc(GL_LESS);
-
-	//Режим отрисовки
-	//glDisable(GL_POLYGON_SMOOTH);
-
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-
-	int width, height;
-	glfwGetFramebufferSize(window, &width, &height);
+	std::cout << "Генерация завершена." << " (" << glfwGetTime() - lastTime << "s.)" << std::endl;
 
 	//Загрузка и настройки шейдеров
 	Shader indexed_triangle_shader = Shader("VertexShader.vert", "FragmentShader.frag");
@@ -209,6 +88,10 @@ int main() {
 
 	Shader triangle_shader = Shader("Triangles.vert", "Triangles.frag");
 	GLuint u_projection_voronoi = glGetUniformLocation(triangle_shader.Program, "u_projection");
+	GLuint model_voronoi = glGetUniformLocation(triangle_shader.Program, "model");
+	GLuint light_color = glGetUniformLocation(triangle_shader.Program, "light_color");
+	GLuint ambitient_strength = glGetUniformLocation(triangle_shader.Program, "ambitient_strength");
+	GLuint light_pos = glGetUniformLocation(triangle_shader.Program, "light_pos");
 	GLuint u_colormap_voronoi = glGetUniformLocation(indexed_triangle_shader.Program, "u_colormap");
 
 	Shader pointShader = Shader("Points.vert", "Points.frag");
@@ -219,6 +102,48 @@ int main() {
 	GLuint u_projection_line = glGetUniformLocation(pointShader.Program, "u_projection");
 	GLuint u_multiply_rgba = glGetUniformLocation(pointShader.Program, "u_multiply_rgba");
 	GLuint u_add_rgba = glGetUniformLocation(pointShader.Program, "u_add_rgba");
+
+	//
+	std::vector<GLfloat> vertices; std::vector<GLuint> indices ;
+	drawIndexedTriangles(vertices, indices, &planet.quadGeometryV);
+	VAO noise_VAO = VAO(&indexed_triangle_shader, std::vector<int> {3,2}, &vertices, &indices);
+	//
+	std::vector<GLfloat> vertices_voronoi;
+	drawTriangles(vertices_voronoi, &planet.voronoi);
+	VAO voronoi_VAO = VAO(&triangle_shader, std::vector<int> {3, 2}, &vertices_voronoi);	
+	//
+	VAO points_VAO = VAO(&pointShader, std::vector<int> {3}, &planet.map.r_xyz);
+	//
+	std::vector<GLfloat> vertices_2;
+	drawPlateBoundaries(vertices_2, tm, &planet.map);
+	VAO plate_boundaries_VAO = VAO(&lineShader, std::vector<int> {3, 4}, &vertices_2);
+	//
+	std::vector<GLfloat> vertices_3;
+	drawPlateVectors(vertices_3, tm, &planet.map);
+	VAO plate_vectors_VAO = VAO(&lineShader, std::vector<int> {3, 4}, &vertices_3);
+	//
+	std::vector<GLfloat> vertices_4;
+	drawRivers(vertices_4, tm, &planet.map);
+	VAO rivers_VAO = VAO(&lineShader, std::vector<int> {3, 4}, &vertices_4);
+
+	//Освобождение ресурсов
+	vertices.clear();
+	indices.clear();
+	vertices_voronoi.clear();
+	vertices_3.clear();
+	vertices_4.clear();
+
+	//Вычисление Камеры
+	main_camera = new Camera(4.0f, Camera_mode::ATTACHED);
+
+	// Включить тест глубины
+	glEnable(GL_DEPTH_TEST);
+	// Фрагмент будет выводиться только в том, случае, если он находится ближе к камере, чем предыдущий
+	glDepthFunc(GL_LESS);
+
+	glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
+	int width, height;
+	glfwGetFramebufferSize(window, &width, &height);
 
 	//Настройка текстуры
 	int t_width = 64, t_height = 64;
@@ -231,6 +156,7 @@ int main() {
 	glGenerateMipmap(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
+	glEnable(GL_DEPTH_TEST);
 
 	//Продолжать работу пока окно не закрыто	
 	while (!glfwWindowShouldClose(window)) {
@@ -241,6 +167,7 @@ int main() {
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		main_camera->targetDistance = zoom;
 		main_camera->CalcPosition();
 		glm::mat4 Projection = glm::perspective(glm::radians(main_camera->FOV), (float)width / (float)height, main_camera->min_p, main_camera->max_p);
 		glm::mat4 View = glm::lookAt(main_camera->position, glm::vec3(0, 0, 0), glm::vec3(0, 4, 0));
@@ -248,56 +175,47 @@ int main() {
 		glm::mat4 MVP = Projection * View * Model;
 
 		//Sphere render
-		/*indexed_triangle_shader.Use();
-		glEnable(GL_DEPTH_TEST);
-		glBindVertexArray(VAO);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		/*noise_VAO.use(GL_FRONT_AND_BACK, GL_FILL);
 		glBindTexture(GL_TEXTURE_2D, texture);
 		glUniform2f(u_light_angle, cosf(M_PI / 3.0f), sinf(M_PI / 3.0f));
-		glUniform1f(u_inverse_texture_size, 1.0f / 4096.0f);
+		glUniform1f(u_inverse_texture_size, 1.0f / 2048.0f);
 		glUniform1f(u_d, 60.0f);
 		glUniform1f(u_c, 0.15f);
 		glUniform1f(u_slope, 6.0f);
 		glUniform1f(u_flat, 2.5f);
 		glUniform1f(u_outline_strength, 5.0f);
 		glUniformMatrix4fv(u_projection, 1, GL_FALSE, &MVP[0][0]);
-		glDrawElements(GL_TRIANGLES, quadGeometry.indices.size(), GL_UNSIGNED_INT, 0);*/
-
-		triangle_shader.Use();
-		glEnable(GL_DEPTH_TEST);
-		glBindVertexArray(VAO_VORONOI);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		noise_VAO.draw();*/
+		
+		voronoi_VAO.use(GL_FRONT_AND_BACK, GL_FILL);
 		glBindTexture(GL_TEXTURE_2D, texture);
+		glUniform3f(light_color, 1, 1, 1);
+		glUniform3f(light_pos, 20, 0, 0);
+		glUniform1f(ambitient_strength, 0.15f);
+		glUniformMatrix4fv(model_voronoi, 1, GL_FALSE, &Model[0][0]);
 		glUniformMatrix4fv(u_projection_voronoi, 1, GL_FALSE, &MVP[0][0]);
-		glDrawArrays(GL_TRIANGLES, 0, planet.voronoi.points.size() * 5);
-		glBindVertexArray(0);
+		voronoi_VAO.draw(GL_TRIANGLES);
 
-		//line render
-		/*lineShader.Use();
-		glDisable(GL_DEPTH_TEST);
-		glBindVertexArray(VAO_3);
+		/*plate_vectors_VAO.use(GL_FRONT_AND_BACK, GL_LINE);
 		glUniformMatrix4fv(u_projection_line, 1, GL_FALSE, &MVP[0][0]);
 		glUniform4f(u_add_rgba, 0,0,0,0);
 		glUniform4f(u_multiply_rgba, 1,1,1,1);
-		glDrawArrays(GL_LINES, 0, line_xyz.size()*7);*/
+		plate_vectors_VAO.draw(GL_LINES);
 
-		//line render
-		/*lineShader.Use();
-		glDisable(GL_DEPTH_TEST);
-		glBindVertexArray(VAO_4);
+		plate_boundaries_VAO.use(GL_FRONT_AND_BACK, GL_LINE);
 		glUniformMatrix4fv(u_projection_line, 1, GL_FALSE, &MVP[0][0]);
 		glUniform4f(u_add_rgba, 0, 0, 0, 0);
 		glUniform4f(u_multiply_rgba, 1, 1, 1, 1);
-		glDrawArrays(GL_LINES, 0, line_xyz_2.size() * 7);*/
+		plate_boundaries_VAO.draw(GL_LINES);*/
 
 		//line render
-		lineShader.Use();
+		/*lineShader.Use();
 		glDisable(GL_DEPTH_TEST);
 		glBindVertexArray(VAO_5);
 		glUniformMatrix4fv(u_projection_line, 1, GL_FALSE, &MVP[0][0]);
 		glUniform4f(u_add_rgba, 0, 0, 0, 0);
 		glUniform4f(u_multiply_rgba, 1, 1, 1, 1);
-		glDrawArrays(GL_LINES, 0, line_xyz_3.size() * 7);
+		glDrawArrays(GL_LINES, 0, line_xyz_3.size() * 7);*/
 
 		//Point render
 		/*pointShader.Use();
@@ -319,42 +237,53 @@ int main() {
 }
 
 //Подготовка меша к рендеру
-void drawIndexedTriangles(GLfloat * &vertices, GLuint * &indices, const QuadGeometryV * planetMesh)
+void drawTriangleMesh(std::vector<GLfloat>& vertices, std::vector<GLuint>& indices, const TriangleMesh * planetMesh)
 {
-	vertices = (GLfloat*)malloc(planetMesh->points.size() * sizeof(GLfloat) * 5);
-	indices = (GLuint*)malloc(planetMesh->indices.size() * sizeof(GLuint));
-
-	std::vector<GLfloat> v;
-
+	vertices = std::vector<GLfloat>(planetMesh->points.size() * 5);
 	for (std::size_t i = 0; i < planetMesh->points.size(); i++)
 	{
-		vertices[i * 5 + 0] = planetMesh->points[i].x;
-		vertices[i * 5 + 1] = planetMesh->points[i].y;
-		vertices[i * 5 + 2] = planetMesh->points[i].z;
-
-		vertices[i * 5 + 3] = planetMesh->tem_mois[i].x;
-		vertices[i * 5 + 4] = planetMesh->tem_mois[i].y;
+		(vertices)[i * 5 + 0] = planetMesh->points[i].x;
+		(vertices)[i * 5 + 1] = planetMesh->points[i].y;
+		(vertices)[i * 5 + 2] = planetMesh->points[i].z;
+		(vertices)[i * 5 + 3] = 0;
+		(vertices)[i * 5 + 4] = 0;
 	}
+	indices = std::vector<GLuint>(planetMesh->triangles.size());
+	for (int i = 0; i < planetMesh->triangles.size(); i++)
+		(indices)[i] = planetMesh->triangles[i];
+}
+
+//Подготовка меша к рендеру
+void drawIndexedTriangles(std::vector<GLfloat>& vertices, std::vector<GLuint>& indices, const QuadGeometryV * planetMesh)
+{
+	vertices =  std::vector<GLfloat>(planetMesh->points.size() * 5);
+	for (std::size_t i = 0; i < planetMesh->points.size(); i++)
+	{
+		(vertices)[i * 5 + 0] = planetMesh->points[i].x;
+		(vertices)[i * 5 + 1] = planetMesh->points[i].y;
+		(vertices)[i * 5 + 2] = planetMesh->points[i].z;
+		(vertices)[i * 5 + 3] = planetMesh->tem_mois[i].x;
+		(vertices)[i * 5 + 4] = planetMesh->tem_mois[i].y;
+	}
+	indices =  std::vector<GLuint>(planetMesh->indices.size());
 	for (int i = 0; i < planetMesh->indices.size(); i++)
-		indices[i] = planetMesh->indices[i];
+		(indices)[i] = planetMesh->indices[i];
 }
 
-void drawTriangles(GLfloat * &vertices, const Voronoi * planetMesh)
+void drawTriangles(std::vector<GLfloat> &vertices, const Voronoi * planetMesh)
 {
-	vertices = (GLfloat*)malloc(planetMesh->points.size() * sizeof(GLfloat) * 5);
-
+	vertices =  std::vector<GLfloat>(planetMesh->points.size() * 5);
 	for (std::size_t i = 0; i < planetMesh->points.size(); i++)
 	{
 		vertices[i * 5 + 0] = planetMesh->points[i].x;
 		vertices[i * 5 + 1] = planetMesh->points[i].y;
 		vertices[i * 5 + 2] = planetMesh->points[i].z;
-
 		vertices[i * 5 + 3] = planetMesh->tm[i].x;
-		vertices[i * 5 + 4] = planetMesh->tm[i].y;
+		vertices[i * 5 + 4] = planetMesh->tm[i].y;		
 	}
 }
 
-std::vector<vec3> drawPlateBoundaries(GLfloat * &vertices, TriangleMesh * mesh, Map * map) {
+std::vector<vec3> drawPlateBoundaries(std::vector<GLfloat> & vertices, TriangleMesh * mesh, Map * map) {
 	std::vector<vec3> line_xyz;
 	std::vector<vec4> line_rgba;
 	for (int s = 0; s < mesh->numSides; s++) {
@@ -372,7 +301,7 @@ std::vector<vec3> drawPlateBoundaries(GLfloat * &vertices, TriangleMesh * mesh, 
 		}
 	}
 
-	vertices = (GLfloat*)malloc(line_xyz.size() * sizeof(GLfloat) * 7);
+	vertices =  std::vector<GLfloat>(line_xyz.size() * 7);
 	for (int i = 0; i < line_xyz.size(); i++) {
 		vertices[i * 7 + 0] = line_xyz[i].x;
 		vertices[i * 7 + 1] = line_xyz[i].y;
@@ -385,7 +314,7 @@ std::vector<vec3> drawPlateBoundaries(GLfloat * &vertices, TriangleMesh * mesh, 
 	return line_xyz;
 }
 
-std::vector<vec3> drawPlateVectors(GLfloat * &vertices, TriangleMesh * mesh, Map * map) {
+std::vector<vec3> drawPlateVectors(std::vector<GLfloat> & vertices, TriangleMesh * mesh, Map * map) {
 	std::vector<vec3> line_xyz;
 	std::vector<vec4> line_rgba;
 	for (int r = 0; r < mesh->numRegions; r++) {
@@ -395,7 +324,7 @@ std::vector<vec3> drawPlateVectors(GLfloat * &vertices, TriangleMesh * mesh, Map
 		line_rgba.push_back(vec4(1, 0, 0, 0));
 	}
 
-	vertices = (GLfloat*)malloc(line_xyz.size() * sizeof(GLfloat) * 7);
+	vertices =  std::vector<GLfloat>(line_xyz.size() * 7);
 	for (int i = 0; i < line_xyz.size(); i++) {
 		vertices[i * 7 + 0] = line_xyz[i].x;
 		vertices[i * 7 + 1] = line_xyz[i].y;
@@ -408,7 +337,7 @@ std::vector<vec3> drawPlateVectors(GLfloat * &vertices, TriangleMesh * mesh, Map
 	return line_xyz;
 }
 
-std::vector<vec3> drawRivers(GLfloat * &vertices, TriangleMesh * mesh, Map * map) {
+std::vector<vec3> drawRivers(std::vector<GLfloat> & vertices, TriangleMesh * mesh, Map * map) {
 	std::vector<vec3> line_xyz;
 	std::vector<vec4> line_rgba;
 	for (int s = 0; s < mesh->numSides; s++) {
@@ -424,7 +353,8 @@ std::vector<vec3> drawRivers(GLfloat * &vertices, TriangleMesh * mesh, Map * map
 			line_rgba.push_back(rgba_premultiplied);
 		}
 	}
-	vertices = (GLfloat*)malloc(line_xyz.size() * sizeof(GLfloat) * 7);
+
+	vertices =  std::vector<GLfloat>(line_xyz.size() * 7);
 	for (int i = 0; i < line_xyz.size(); i++) {
 		vertices[i * 7 + 0] = line_xyz[i].x;
 		vertices[i * 7 + 1] = line_xyz[i].y;
@@ -459,6 +389,11 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
 	if (key == GLFW_KEY_D && action == GLFW_REPEAT) {
 		main_camera->inclination += deltaTime * main_camera->movingSpeed;
 	}
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	zoom += yoffset / 10;
 }
 
 
