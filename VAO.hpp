@@ -1,8 +1,10 @@
 #pragma once
 
-#define GLEW_STATIC
+#ifndef GRAPHICS_H
+#define GRAPHICS_H
 #include <gl/glew.h>
-#include  <gl/glfw3.h>
+#include <gl/glfw3.h>
+#endif
 
 #include <vector>
 #include "Shader.hpp"
@@ -20,15 +22,18 @@ public:
 
 	void use(int polygon_mode_side, int polygon_mode);
 	void draw(int draw_mode);
+	bool initialized();
+
+	Shader * shader;
 private:
+	int total_attributes_size;
+
 	GLuint VAO_index;
 	GLuint VBO_index;
 	GLuint EBO_index;;
 
 	GLuint vertices_size;
 	GLuint indices_size;
-
-	Shader * shader;
 
 	void initializeBuffers(std::vector<int> attributes_size, std::vector<GLfloat> * vertices, std::vector<GLuint> * indices);
 };

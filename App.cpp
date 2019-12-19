@@ -1,27 +1,332 @@
 #include "App.h"
+#include <string>
 
 using namespace glm;
 
-// 1 - Сглаживание
-// 2 - Максимальная версия OGL
-// 3 - Минимальная версия OGL
-// 4 - Высота окна
-// 5 - Ширина окна
-int settings[5] = {4,3,3, 1000, 1000};
+// 1 - Multisampling
+// 2 - Gl version max
+// 3 - Gl version min
+// 4 - Window init width 
+// 5 - Window init height
+int settings[5] = {4,3,3, 1600, 900};
 
-//Главное окно
 GLFWwindow* window;
-Camera* main_camera;
-float deltaTime = 1.0f;
+Camera camera(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f), 4.0f);
 
-//Вынести в UI
+//Mouse & keyboard input
+bool keys[1024];
+GLfloat lastX = 400, lastY = 300;
+bool firstMouse = true;
+
+//Render settings
+bool bloom = true;
+bool bloomKeyPressed = false;
+bool drawNoiseFlag = false;
+bool drawRiversFlag = false;
+bool illuminate_entire_surface = false;
+float exposure = 1.0f;
+float outline_strength = 1.0f;
+float ocean_percent = 70.0f;
+float temperature_change = 0.0f;
+
 float zoom = 4.0f;
-int region_number = 50000;
+float angle = 0;
+
+//Generate settings
+int region_number = 250;
 int plates_number = 20;
 int seed = 12300;
 
-//Освещение
+//utils
+GLfloat deltaTime = 0.0f;
+GLfloat lastFrame = 0.0f;
+float FOV = 90.0f;
+bool start_generate_planet = false;
 
+std::vector<Planet*> planets = std::vector<Planet*>(10, new Planet());
+
+int main() {
+	
+
+	window = InitWindow(&settings[0]);	
+	int display_w, display_h;
+	glfwGetFramebufferSize(window, &display_w, &display_h);
+
+	//Imgui library int
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	ImGui::StyleColorsDark();
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init("#version 330");
+
+	//Compiling Shaders 
+	Shader skyboxShader = Shader("Shaders/skybox.vert", "Shaders/skybox.frag");
+	Shader indexed_triangle_shader = Shader("Shaders/VertexShader.vert", "Shaders/FragmentShader.frag");
+	Shader triangle_shader = Shader("Shaders/Triangles.vert", "Shaders/Triangles.frag");
+	Shader pointShader = Shader("Shaders/Points.vert", "Shaders/Points.frag");
+	Shader lineShader = Shader("Shaders/Lines.vert", "Shaders/Lines.frag");
+	Shader bloomShader = Shader("Shaders/FrameQuad.vert", "Shaders/Gauss.frag");
+	Shader blurFrameShader = Shader("Shaders/FrameQuad.vert", "Shaders/FrameQuad.frag");
+
+	//Setting layout for textures
+	blurFrameShader.Use();
+	blurFrameShader.setInt("image", 0);
+	bloomShader.Use();
+	bloomShader.setInt("scene", 0);
+	bloomShader.setInt("bloomBlur", 1);
+
+	GLuint planet_texture = generatePlanetTexture();
+	SkyBox sky_box = SkyBox(&skyboxShader);
+
+	std::vector<float> quadVerticles = {
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		-1.0f, -1.0f,  0.0f, 0.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+		 1.0f,  1.0f,  1.0f, 1.0f
+	};
+	VAO frame_quad_VAO = VAO(&blurFrameShader, std::vector<int> {2,2}, &quadVerticles);
+
+	//Frame buffer init
+	unsigned int frame_buffer_object;
+	glGenFramebuffers(1, &frame_buffer_object);
+	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_object);
+	// Create 2 floating point color buffers (1 for regular rendering, other for brightness treshold values)
+	unsigned int colorBuffers[2];
+	glGenTextures(2, colorBuffers);
+	for (unsigned int i = 0; i < 2; i++)
+	{
+		glBindTexture(GL_TEXTURE_2D, colorBuffers[i]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, display_w, display_h, 0, GL_RGB, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  // we clamp to the edge as the blur filter would otherwise sample repeated texture values!
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		// attach texture to framebuffer
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, colorBuffers[i], 0);
+	}
+	// Create and attach depth buffer
+	unsigned int render_buffer_object_depth;
+	glGenRenderbuffers(1, &render_buffer_object_depth);
+	glBindRenderbuffer(GL_RENDERBUFFER, render_buffer_object_depth);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, display_w, display_h);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, render_buffer_object_depth);
+	// Create and attach color attachments 
+	unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+	glDrawBuffers(2, attachments);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "Framebuffer not complete!" << std::endl;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// ping-pong-framebuffer for blurring
+	unsigned int pingpongFBO[2];
+	unsigned int pingpongColorbuffers[2];
+	glGenFramebuffers(2, pingpongFBO);
+	glGenTextures(2, pingpongColorbuffers);
+	for (unsigned int i = 0; i < 2; i++)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[i]);
+		glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[i]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, display_w, display_h, 0, GL_RGB, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // we clamp to the edge as the blur filter would otherwise sample repeated texture values!
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pingpongColorbuffers[i], 0);
+		// also check if framebuffers are complete (no need for depth buffer)
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			std::cout << "Framebuffer not complete!" << std::endl;
+	}
+
+	//Weight coefficients for Euler's curve
+	std::vector<float> weight = {0.0, 0.0, 0.0, 0.072, 0.264};
+	int pass_amount = 0;
+
+	ImGuiStyle& style = ImGui::GetStyle();
+	style.WindowBorderSize = 0.0f;
+	style.Alpha = 0.8f;
+
+	glEnable(GL_MULTISAMPLE);
+	//Main loop
+	while (!glfwWindowShouldClose(window)) {
+		double lastTime = glfwGetTime();
+
+		glfwPollEvents();
+		UpdateCamera();
+
+		glfwGetFramebufferSize(window, &display_w, &display_h);
+		glViewport(0, 0, display_w, display_h);
+
+		//gui render init
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+		//Main gui interface
+		{
+			static int current_planet = 0;
+			static vec3 position = vec3(0, 0, 0);
+			ImGui::SetNextWindowPos({ 0, (float)display_h }, 0, { 0,1 });
+			ImGui::SetNextWindowSize({ 0,0 }, 0);
+			ImGui::Begin(" ");
+
+			ImGui::SetNextItemWidth(display_w / 10.f);
+			ImGui::SliderFloat("FOV", &FOV, 30.0f, 180.0f);
+			ImGui::SetNextItemWidth(display_w / 10.f);
+			ImGui::SliderFloat("wiew distance", &camera.Zoom, 1.0f, 40.0f);
+			ImGui::SetNextItemWidth(display_w / 10.f);
+			ImGui::InputInt("Seed", &seed);
+			ImGui::SetNextItemWidth(display_w / 10.f);
+			ImGui::InputInt("Regions number", &region_number, 100);
+			ImGui::SetNextItemWidth(display_w / 10.f);
+			ImGui::InputInt("Plates Number", &plates_number);
+			ImGui::SetNextItemWidth(display_w / 10.f);
+			ImGui::SliderFloat("Water Percent", &ocean_percent, 0.0f, 100.0f);
+			ImGui::SetNextItemWidth(display_w / 10.f);
+			ImGui::SliderFloat("Temperature change", &temperature_change, -10.0f, 10.0f);
+
+			//ImGui::SetNextItemWidth(display_w / 10.f);
+			//ImGui::SliderInt("Current Planet index", &current_planet, 0, 9);
+			ImGui::SetNextItemWidth(display_w / 10.f);
+			ImGui::SliderFloat("Rotating speed", &(*planets[current_planet]).rotating_speed, 0.0f, 10.0f);
+			ImGui::SetNextItemWidth(display_w / 10.f);
+			ImGui::InputFloat3("Axis", &(*planets[current_planet]).axis.x);
+			ImGui::SetNextItemWidth(display_w / 10.f);
+			ImGui::InputFloat3("Position", &position.x);
+
+			ImGui::SetNextItemWidth(display_w / 10.f);
+			ImGui::InputInt("Pass amount", &pass_amount);
+			pass_amount = pass_amount < 0 ? 0 : pass_amount;
+			ImGui::SetNextItemWidth(display_w / 10.f);
+			ImGui::SliderFloat("outline strength", &outline_strength, 0.0f, 10.0f);
+			ImGui::SetNextItemWidth(display_w / 10.f);
+			ImGui::SliderFloat("w4", &weight[3], 0, 0.5);
+			ImGui::SetNextItemWidth(display_w / 10.f);
+			ImGui::SliderFloat("w5", &weight[4], 0, 0.5);
+
+			ImGui::SetNextItemWidth(display_w / 10.f);
+			ImGui::Checkbox("Noise Render", &drawNoiseFlag);
+			ImGui::SetNextItemWidth(display_w / 10.f);
+			ImGui::Checkbox("Rivers Render", &drawRiversFlag);
+
+			ImGui::SetNextItemWidth(display_w / 10.f);
+			if (ImGui::Button("Generate Planet")) {
+				planets[0] = new Planet(region_number, plates_number, seed, ocean_percent);
+				planets[0]->position = position;
+				planets[0]->setVAOs(&indexed_triangle_shader, &triangle_shader, &pointShader, &lineShader);
+			}
+
+			ImGui::End();
+		}
+		//Frame per second display
+		{
+			bool isOpen = true;
+			ImGuiWindowFlags window_flags = 0;
+			window_flags |= ImGuiWindowFlags_NoTitleBar | 
+							ImGuiWindowFlags_NoBackground;
+
+			ImGui::SetNextWindowPos({ 0, 0 }, 0);
+			ImGui::SetNextWindowSize({ 0,0 }, 0);
+			
+			ImGui::Begin("Framerate", &isOpen, window_flags);
+			ImGui::BulletText(&std::to_string(1 / deltaTime)[0]);
+			ImGui::End();
+			
+		}
+
+		ImGui::Render();
+
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		//main render init
+		glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_object);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LEQUAL);
+		glActiveTexture(GL_TEXTURE0);
+		/////////////////////////////////////////////////////////////////////
+		 
+		glm::mat4 Projection = glm::perspective( FOV/180.0f* (float)M_PI, (float)display_w / (float)display_h, 0.1f, 1000.0f);
+		glm::mat4 View = camera.GetViewMatrix();	
+
+		//Planet render
+		for (int i = 0 ; i < planets.size(); i++)
+		if (planets[i]->initialized) {
+
+			glm::mat4 Model = glm::mat4(1.0f);
+			angle += (planets[i]->rotating_speed * deltaTime);
+			Model = glm::rotate(Model, angle, planets[i]->axis);
+			glm::mat4 MVP = Projection * View * Model;
+
+			planets[i]->texture = planet_texture;
+			planets[i]->draw(drawNoiseFlag, drawRiversFlag, &MVP, &Model , outline_strength);
+		}
+		
+		//Ping-Pong blur iterations
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		bool horizontal = true, first_iteration = true;
+		int amount = pass_amount;
+		bloomShader.Use();
+		for (int i = 0; i < amount; i++)
+		{		
+			glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
+			
+			glUniform1fv(glGetUniformLocation(bloomShader.Program, "weight"),5, &weight[0]);
+			glUniform1i(glGetUniformLocation(bloomShader.Program, "horizontal"), horizontal);
+			glBindTexture(
+				GL_TEXTURE_2D, first_iteration ? colorBuffers[1] : pingpongColorbuffers[!horizontal]
+			);
+			frame_quad_VAO.use(GL_FRONT_AND_BACK, GL_FILL);
+			frame_quad_VAO.draw(GL_TRIANGLES);
+			horizontal = !horizontal;
+			if (first_iteration)
+				first_iteration = false;
+		}
+		
+		//SkyBox render
+		glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_object);
+		sky_box.draw(&View, &Projection);
+
+		drawFrameBuffer(frame_quad_VAO, blurFrameShader, colorBuffers, pingpongColorbuffers, horizontal);
+
+		//Final gui draw
+		glDisable(GL_DEPTH_TEST);
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		//Update color buffers
+		glfwSwapBuffers(window);
+
+		deltaTime = float(glfwGetTime() - lastTime);
+	}
+
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
+
+	glfwDestroyWindow(window);
+	glfwTerminate();
+
+	return 0;
+}
+
+void drawFrameBuffer(VAO &frame_quad_VAO, Shader &blurFrameShader, unsigned int  colorBuffers[2], unsigned int  pingpongColorbuffers[2], bool horizontal)
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	blurFrameShader.Use();
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]);
+	blurFrameShader.setInt("bloomBlur", bloom);
+	blurFrameShader.setFloat("exposure", exposure);
+	frame_quad_VAO.use(GL_FRONT_AND_BACK, GL_FILL);
+	frame_quad_VAO.draw(GL_TRIANGLES);
+}
 
 GLFWwindow * InitWindow(int * settings) {
 	if (!glfwInit())
@@ -42,6 +347,7 @@ GLFWwindow * InitWindow(int * settings) {
 		return NULL;
 	}
 	glfwMakeContextCurrent(window);
+	glfwSwapInterval(1); // Enable vsync
 
 	glewExperimental = true;
 	if (glewInit() != GLEW_OK) {
@@ -49,351 +355,70 @@ GLFWwindow * InitWindow(int * settings) {
 		return NULL;
 	}
 
-	int width, height;
-	glfwGetFramebufferSize(window, &width, &height);
-	glViewport(0, 0, width, height);
+	glfwSetKeyCallback(window, key_callback);
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, scroll_callback);
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	return window;
 }
 
-int main() {
-	setlocale(LC_CTYPE, "Russian");
-
-	double lastTime = glfwGetTime();
-
-	window = InitWindow(&settings[0]);
-	glfwSetKeyCallback(window, key_callback);
-	glfwSetScrollCallback(window, scroll_callback);
-
-	std::vector<vec3> fs = generateFibonacciSphere(region_number, 0.1f);
-	TriangleMesh * tm = generateDelanuaySphere(&fs);
-	Planet planet = Planet(*tm, seed, region_number, plates_number);
-
-	fs.clear();
-	fs.shrink_to_fit();
-
-	std::cout << "Генерация завершена." << " (" << glfwGetTime() - lastTime << "s.)" << std::endl;
-
-	//Загрузка и настройки шейдеров
-	Shader indexed_triangle_shader = Shader("VertexShader.vert", "FragmentShader.frag");
-	GLuint u_projection = glGetUniformLocation(indexed_triangle_shader.Program, "u_projection");
-	GLuint u_colormap = glGetUniformLocation(indexed_triangle_shader.Program, "u_colormap");
-	GLuint u_light_angle = glGetUniformLocation(indexed_triangle_shader.Program, "u_light_angle");
-	GLuint u_inverse_texture_size = glGetUniformLocation(indexed_triangle_shader.Program, "u_inverse_texture_size");
-	GLuint u_d = glGetUniformLocation(indexed_triangle_shader.Program, "u_d");
-	GLuint u_c = glGetUniformLocation(indexed_triangle_shader.Program, "u_c");
-	GLuint u_slope = glGetUniformLocation(indexed_triangle_shader.Program, "u_slope");
-	GLuint u_flat = glGetUniformLocation(indexed_triangle_shader.Program, "u_flat");
-	GLuint u_outline_strength = glGetUniformLocation(indexed_triangle_shader.Program, "u_outline_strength");
-
-	Shader triangle_shader = Shader("Triangles.vert", "Triangles.frag");
-	GLuint u_projection_voronoi = glGetUniformLocation(triangle_shader.Program, "u_projection");
-	GLuint model_voronoi = glGetUniformLocation(triangle_shader.Program, "model");
-	GLuint light_color = glGetUniformLocation(triangle_shader.Program, "light_color");
-	GLuint ambitient_strength = glGetUniformLocation(triangle_shader.Program, "ambitient_strength");
-	GLuint light_pos = glGetUniformLocation(triangle_shader.Program, "light_pos");
-	GLuint u_colormap_voronoi = glGetUniformLocation(indexed_triangle_shader.Program, "u_colormap");
-
-	Shader pointShader = Shader("Points.vert", "Points.frag");
-	GLuint u_projection2 = glGetUniformLocation(pointShader.Program, "u_projection");
-	GLuint u_pointsize2 = glGetUniformLocation(pointShader.Program, "u_pointsize");
-
-	Shader lineShader = Shader("Lines.vert", "Lines.frag");
-	GLuint u_projection_line = glGetUniformLocation(pointShader.Program, "u_projection");
-	GLuint u_multiply_rgba = glGetUniformLocation(pointShader.Program, "u_multiply_rgba");
-	GLuint u_add_rgba = glGetUniformLocation(pointShader.Program, "u_add_rgba");
-
-	//
-	std::vector<GLfloat> vertices; std::vector<GLuint> indices ;
-	drawIndexedTriangles(vertices, indices, &planet.quadGeometryV);
-	VAO noise_VAO = VAO(&indexed_triangle_shader, std::vector<int> {3,2}, &vertices, &indices);
-	//
-	std::vector<GLfloat> vertices_voronoi;
-	drawTriangles(vertices_voronoi, &planet.voronoi);
-	VAO voronoi_VAO = VAO(&triangle_shader, std::vector<int> {3, 2}, &vertices_voronoi);	
-	//
-	VAO points_VAO = VAO(&pointShader, std::vector<int> {3}, &planet.map.r_xyz);
-	//
-	std::vector<GLfloat> vertices_2;
-	drawPlateBoundaries(vertices_2, tm, &planet.map);
-	VAO plate_boundaries_VAO = VAO(&lineShader, std::vector<int> {3, 4}, &vertices_2);
-	//
-	std::vector<GLfloat> vertices_3;
-	drawPlateVectors(vertices_3, tm, &planet.map);
-	VAO plate_vectors_VAO = VAO(&lineShader, std::vector<int> {3, 4}, &vertices_3);
-	//
-	std::vector<GLfloat> vertices_4;
-	drawRivers(vertices_4, tm, &planet.map);
-	VAO rivers_VAO = VAO(&lineShader, std::vector<int> {3, 4}, &vertices_4);
-
-	//Освобождение ресурсов
-	vertices.clear();
-	indices.clear();
-	vertices_voronoi.clear();
-	vertices_3.clear();
-	vertices_4.clear();
-
-	//Вычисление Камеры
-	main_camera = new Camera(4.0f, Camera_mode::ATTACHED);
-
-	// Включить тест глубины
-	glEnable(GL_DEPTH_TEST);
-	// Фрагмент будет выводиться только в том, случае, если он находится ближе к камере, чем предыдущий
-	glDepthFunc(GL_LESS);
-
-	glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
-	int width, height;
-	glfwGetFramebufferSize(window, &width, &height);
-
-	//Настройка текстуры
-	int t_width = 64, t_height = 64;
-	std::vector<unsigned char> colorm = colormap(t_width, t_height);
-
-	GLuint texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);	
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, t_width, t_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, &colorm[0]);
-	glGenerateMipmap(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	glEnable(GL_DEPTH_TEST);
-
-	//Продолжать работу пока окно не закрыто	
-	while (!glfwWindowShouldClose(window)) {
-		double lastTime = glfwGetTime();
-
-		//Проверить ввод
-		glfwPollEvents();
-
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		main_camera->targetDistance = zoom;
-		main_camera->CalcPosition();
-		glm::mat4 Projection = glm::perspective(glm::radians(main_camera->FOV), (float)width / (float)height, main_camera->min_p, main_camera->max_p);
-		glm::mat4 View = glm::lookAt(main_camera->position, glm::vec3(0, 0, 0), glm::vec3(0, 4, 0));
-		glm::mat4 Model = glm::mat4(1.0f);
-		glm::mat4 MVP = Projection * View * Model;
-
-		//Sphere render
-		/*noise_VAO.use(GL_FRONT_AND_BACK, GL_FILL);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		glUniform2f(u_light_angle, cosf(M_PI / 3.0f), sinf(M_PI / 3.0f));
-		glUniform1f(u_inverse_texture_size, 1.0f / 2048.0f);
-		glUniform1f(u_d, 60.0f);
-		glUniform1f(u_c, 0.15f);
-		glUniform1f(u_slope, 6.0f);
-		glUniform1f(u_flat, 2.5f);
-		glUniform1f(u_outline_strength, 5.0f);
-		glUniformMatrix4fv(u_projection, 1, GL_FALSE, &MVP[0][0]);
-		noise_VAO.draw();*/
-		
-		voronoi_VAO.use(GL_FRONT_AND_BACK, GL_FILL);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		glUniform3f(light_color, 1, 1, 1);
-		glUniform3f(light_pos, 20, 0, 0);
-		glUniform1f(ambitient_strength, 0.15f);
-		glUniformMatrix4fv(model_voronoi, 1, GL_FALSE, &Model[0][0]);
-		glUniformMatrix4fv(u_projection_voronoi, 1, GL_FALSE, &MVP[0][0]);
-		voronoi_VAO.draw(GL_TRIANGLES);
-
-		/*plate_vectors_VAO.use(GL_FRONT_AND_BACK, GL_LINE);
-		glUniformMatrix4fv(u_projection_line, 1, GL_FALSE, &MVP[0][0]);
-		glUniform4f(u_add_rgba, 0,0,0,0);
-		glUniform4f(u_multiply_rgba, 1,1,1,1);
-		plate_vectors_VAO.draw(GL_LINES);
-
-		plate_boundaries_VAO.use(GL_FRONT_AND_BACK, GL_LINE);
-		glUniformMatrix4fv(u_projection_line, 1, GL_FALSE, &MVP[0][0]);
-		glUniform4f(u_add_rgba, 0, 0, 0, 0);
-		glUniform4f(u_multiply_rgba, 1, 1, 1, 1);
-		plate_boundaries_VAO.draw(GL_LINES);*/
-
-		//line render
-		/*lineShader.Use();
-		glDisable(GL_DEPTH_TEST);
-		glBindVertexArray(VAO_5);
-		glUniformMatrix4fv(u_projection_line, 1, GL_FALSE, &MVP[0][0]);
-		glUniform4f(u_add_rgba, 0, 0, 0, 0);
-		glUniform4f(u_multiply_rgba, 1, 1, 1, 1);
-		glDrawArrays(GL_LINES, 0, line_xyz_3.size() * 7);*/
-
-		//Point render
-		/*pointShader.Use();
-		glEnable(GL_DEPTH_TEST);
-		glBindVertexArray(VAO_2);
-		glUniformMatrix4fv(u_projection2, 1, GL_FALSE, &MVP[0][0]);
-		glUniform1f(u_pointsize2, 0.1f + 100.0f / sqrt(map.r_xyz.size() / 3));
-		glPolygonMode(GL_FRONT_AND_BACK, GL_POINTS);
-		glDrawArrays(GL_POINTS, 0, map.r_xyz.size()/3);*/
-
-		//Обновить цветовой буфер
-		glfwSwapBuffers(window);
-
-		deltaTime = float(glfwGetTime() - lastTime);
-	}
-
-	glfwTerminate();
-	return 0;
-}
-
-//Подготовка меша к рендеру
-void drawTriangleMesh(std::vector<GLfloat>& vertices, std::vector<GLuint>& indices, const TriangleMesh * planetMesh)
+void UpdateCamera()
 {
-	vertices = std::vector<GLfloat>(planetMesh->points.size() * 5);
-	for (std::size_t i = 0; i < planetMesh->points.size(); i++)
-	{
-		(vertices)[i * 5 + 0] = planetMesh->points[i].x;
-		(vertices)[i * 5 + 1] = planetMesh->points[i].y;
-		(vertices)[i * 5 + 2] = planetMesh->points[i].z;
-		(vertices)[i * 5 + 3] = 0;
-		(vertices)[i * 5 + 4] = 0;
-	}
-	indices = std::vector<GLuint>(planetMesh->triangles.size());
-	for (int i = 0; i < planetMesh->triangles.size(); i++)
-		(indices)[i] = planetMesh->triangles[i];
+	// Camera controls
+	if (keys[GLFW_KEY_W])
+		camera.ProcessKeyboard(FORWARD, deltaTime);
+	if (keys[GLFW_KEY_S])
+		camera.ProcessKeyboard(BACKWARD, deltaTime);
+	if (keys[GLFW_KEY_A])
+		camera.ProcessKeyboard(LEFT, deltaTime);
+	if (keys[GLFW_KEY_D])
+		camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 
-//Подготовка меша к рендеру
-void drawIndexedTriangles(std::vector<GLfloat>& vertices, std::vector<GLuint>& indices, const QuadGeometryV * planetMesh)
+// Called on input
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
-	vertices =  std::vector<GLfloat>(planetMesh->points.size() * 5);
-	for (std::size_t i = 0; i < planetMesh->points.size(); i++)
-	{
-		(vertices)[i * 5 + 0] = planetMesh->points[i].x;
-		(vertices)[i * 5 + 1] = planetMesh->points[i].y;
-		(vertices)[i * 5 + 2] = planetMesh->points[i].z;
-		(vertices)[i * 5 + 3] = planetMesh->tem_mois[i].x;
-		(vertices)[i * 5 + 4] = planetMesh->tem_mois[i].y;
-	}
-	indices =  std::vector<GLuint>(planetMesh->indices.size());
-	for (int i = 0; i < planetMesh->indices.size(); i++)
-		(indices)[i] = planetMesh->indices[i];
-}
-
-void drawTriangles(std::vector<GLfloat> &vertices, const Voronoi * planetMesh)
-{
-	vertices =  std::vector<GLfloat>(planetMesh->points.size() * 5);
-	for (std::size_t i = 0; i < planetMesh->points.size(); i++)
-	{
-		vertices[i * 5 + 0] = planetMesh->points[i].x;
-		vertices[i * 5 + 1] = planetMesh->points[i].y;
-		vertices[i * 5 + 2] = planetMesh->points[i].z;
-		vertices[i * 5 + 3] = planetMesh->tm[i].x;
-		vertices[i * 5 + 4] = planetMesh->tm[i].y;		
-	}
-}
-
-std::vector<vec3> drawPlateBoundaries(std::vector<GLfloat> & vertices, TriangleMesh * mesh, Map * map) {
-	std::vector<vec3> line_xyz;
-	std::vector<vec4> line_rgba;
-	for (int s = 0; s < mesh->numSides; s++) {
-		int begin_r = mesh->s_begin_r(s);
-		int	end_r = mesh->s_end_r(s);
-		if (map->plates.r_plate[begin_r] != map->plates.r_plate[end_r]) {
-			int inner_t = mesh->s_inner_t(s);
-			int	outer_t = mesh->s_outer_t(s);
-
-			line_xyz.push_back(vec3(map->t_xyz[3 * inner_t + 0], map->t_xyz[3 * inner_t + 1], map->t_xyz[3 * inner_t + 2]));
-			line_xyz.push_back(vec3(map->t_xyz[3 * outer_t + 0], map->t_xyz[3 * outer_t + 1], map->t_xyz[3 * outer_t + 2]));
-
-			line_rgba.push_back(vec4(1, 1, 1, 1));
-			line_rgba.push_back(vec4(1, 1, 1, 1));
-		}
-	}
-
-	vertices =  std::vector<GLfloat>(line_xyz.size() * 7);
-	for (int i = 0; i < line_xyz.size(); i++) {
-		vertices[i * 7 + 0] = line_xyz[i].x;
-		vertices[i * 7 + 1] = line_xyz[i].y;
-		vertices[i * 7 + 2] = line_xyz[i].z;
-		vertices[i * 7 + 3] = line_rgba[i].r;
-		vertices[i * 7 + 4] = line_rgba[i].g;
-		vertices[i * 7 + 5] = line_rgba[i].b;
-		vertices[i * 7 + 6] = line_rgba[i].a;
-	}
-	return line_xyz;
-}
-
-std::vector<vec3> drawPlateVectors(std::vector<GLfloat> & vertices, TriangleMesh * mesh, Map * map) {
-	std::vector<vec3> line_xyz;
-	std::vector<vec4> line_rgba;
-	for (int r = 0; r < mesh->numRegions; r++) {
-		line_xyz.push_back(vec3(map->r_xyz[r*3+0], map->r_xyz[r * 3 + 1], map->r_xyz[r * 3 + 2]));
-		line_rgba.push_back(vec4(1, 1, 1, 1));
-		line_xyz.push_back(vec3(map->r_xyz[r * 3 + 0], map->r_xyz[r * 3 + 1], map->r_xyz[r * 3 + 2]) + map->plates.plate_vec[map->plates.r_plate[r]] * (2 / sqrtf(1000)));
-		line_rgba.push_back(vec4(1, 0, 0, 0));
-	}
-
-	vertices =  std::vector<GLfloat>(line_xyz.size() * 7);
-	for (int i = 0; i < line_xyz.size(); i++) {
-		vertices[i * 7 + 0] = line_xyz[i].x;
-		vertices[i * 7 + 1] = line_xyz[i].y;
-		vertices[i * 7 + 2] = line_xyz[i].z;
-		vertices[i * 7 + 3] = line_rgba[i].r;
-		vertices[i * 7 + 4] = line_rgba[i].g;
-		vertices[i * 7 + 5] = line_rgba[i].b;
-		vertices[i * 7 + 6] = line_rgba[i].a;
-	}
-	return line_xyz;
-}
-
-std::vector<vec3> drawRivers(std::vector<GLfloat> & vertices, TriangleMesh * mesh, Map * map) {
-	std::vector<vec3> line_xyz;
-	std::vector<vec4> line_rgba;
-	for (int s = 0; s < mesh->numSides; s++) {
-		if (map->s_flow[s] > 1) {
-			float flow = 0.1f * sqrtf(map->s_flow[s]);
-			int inner_t = mesh->s_inner_t(s);
-			int	outer_t = mesh->s_outer_t(s);
-			line_xyz.push_back(vec3(map->t_xyz[3 * inner_t], map->t_xyz[3 * inner_t + 1], map->t_xyz[3 * inner_t + 2]));
-			line_xyz.push_back(vec3(map->t_xyz[3 * outer_t], map->t_xyz[3 * outer_t + 1], map->t_xyz[3 * outer_t + 2]));
-			if (flow > 1) flow = 1;
-			vec4 rgba_premultiplied = vec4(0.2f * flow, 0.5f * flow, 0.7f * flow, flow);
-			line_rgba.push_back(rgba_premultiplied);
-			line_rgba.push_back(rgba_premultiplied);
-		}
-	}
-
-	vertices =  std::vector<GLfloat>(line_xyz.size() * 7);
-	for (int i = 0; i < line_xyz.size(); i++) {
-		vertices[i * 7 + 0] = line_xyz[i].x;
-		vertices[i * 7 + 1] = line_xyz[i].y;
-		vertices[i * 7 + 2] = line_xyz[i].z;
-		vertices[i * 7 + 3] = line_rgba[i].r;
-		vertices[i * 7 + 4] = line_rgba[i].g;
-		vertices[i * 7 + 5] = line_rgba[i].b;
-		vertices[i * 7 + 6] = line_rgba[i].a;
-	}
-	return line_xyz;
-}
-
-//Обработка нажатий клавиш
-void key_callback(GLFWwindow * window, int key, int scancode, int action, int mode) {
-	//Закрытие окна
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+	//cout << key << endl;
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
+	if (key >= 0 && key < 1024)
+	{
+		if (action == GLFW_PRESS)
+			keys[key] = true;
+		else if (action == GLFW_RELEASE)
+			keys[key] = false;
 	}
-	// Движение вперед
-	if (key == GLFW_KEY_W && action == GLFW_REPEAT) {
-		main_camera->azimuth += deltaTime * main_camera->movingSpeed;
+}
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	if (firstMouse)
+	{
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
 	}
-	// Движение назад
-	if (key == GLFW_KEY_S && action == GLFW_REPEAT) {
-		main_camera->azimuth -= deltaTime * main_camera->movingSpeed;
-	}
-	// Стрэйф вправо
-	if (key == GLFW_KEY_A && action == GLFW_REPEAT) {
-		main_camera->inclination -= deltaTime * main_camera->movingSpeed;
-	}
-	// Стрэйф влево
-	if (key == GLFW_KEY_D && action == GLFW_REPEAT) {
-		main_camera->inclination += deltaTime * main_camera->movingSpeed;
-	}
+
+	GLfloat xoffset = xpos - lastX;
+	GLfloat yoffset = lastY - ypos;  // Reversed since y-coordinates go from bottom to left
+
+	lastX = xpos;
+	lastY = ypos;
+
+	camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-	zoom += yoffset / 10;
+	camera.ProcessMouseScroll(yoffset, deltaTime);
+}
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+	// make sure the viewport matches the new window dimensions; note that width and 
+	// height will be significantly larger than specified on retina displays.
+	glViewport(0, 0, width, height);
 }
 
 

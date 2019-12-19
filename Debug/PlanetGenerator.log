@@ -1,12 +1,18 @@
-﻿  App.cpp
-c:\users\lee\source\repos\planetgenerator\planetgenerator\quadgeometry.hpp(20): warning C4018: <: несоответствие типов со знаком и без знака
-c:\users\lee\source\repos\planetgenerator\planetgenerator\quadgeometry.hpp(23): warning C4018: <: несоответствие типов со знаком и без знака
+﻿  Planet.cpp
 c:\users\lee\source\repos\planetgenerator\planetgenerator\voronoi.hpp(16): warning C4018: <: несоответствие типов со знаком и без знака
 c:\users\lee\source\repos\planetgenerator\planetgenerator\voronoi.hpp(18): warning C4018: <: несоответствие типов со знаком и без знака
-c:\users\lee\source\repos\planetgenerator\planetgenerator\app.cpp(252): warning C4018: <: несоответствие типов со знаком и без знака
-c:\users\lee\source\repos\planetgenerator\planetgenerator\app.cpp(269): warning C4018: <: несоответствие типов со знаком и без знака
-c:\users\lee\source\repos\planetgenerator\planetgenerator\app.cpp(305): warning C4018: <: несоответствие типов со знаком и без знака
-c:\users\lee\source\repos\planetgenerator\planetgenerator\app.cpp(328): warning C4018: <: несоответствие типов со знаком и без знака
-c:\users\lee\source\repos\planetgenerator\planetgenerator\app.cpp(358): warning C4018: <: несоответствие типов со знаком и без знака
-c:\users\lee\source\repos\planetgenerator\planetgenerator\app.cpp(396): warning C4244: +=: преобразование "double" в "float", возможна потеря данных
+c:\users\lee\source\repos\planetgenerator\planetgenerator\planet.cpp(45): warning C4244: аргумент: преобразование "float" в "const unsigned int", возможна потеря данных
+c:\users\lee\source\repos\planetgenerator\planetgenerator\planet.cpp(48): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\lee\source\repos\planetgenerator\planetgenerator\planet.cpp(138): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\lee\source\repos\planetgenerator\planetgenerator\planet.cpp(141): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\lee\source\repos\planetgenerator\planetgenerator\planet.cpp(152): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\lee\source\repos\planetgenerator\planetgenerator\planet.cpp(155): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\lee\source\repos\planetgenerator\planetgenerator\planet.cpp(275): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\lee\source\repos\planetgenerator\planetgenerator\planet.cpp(288): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\lee\source\repos\planetgenerator\planetgenerator\planet.cpp(312): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\lee\source\repos\planetgenerator\planetgenerator\planet.cpp(585): warning C4305: аргумент: усечение из "double" в "float"
+c:\users\lee\source\repos\planetgenerator\planetgenerator\planet.cpp(591): warning C4244: аргумент: преобразование "int" в "GLfloat", возможна потеря данных
+c:\users\lee\source\repos\planetgenerator\planetgenerator\planet.cpp(650): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\lee\source\repos\planetgenerator\planetgenerator\planet.cpp(673): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\lee\source\repos\planetgenerator\planetgenerator\planet.cpp(703): warning C4018: <: несоответствие типов со знаком и без знака
   PlanetGenerator.vcxproj -> C:\Users\Lee\source\repos\PlanetGenerator\Debug\PlanetGenerator.exe

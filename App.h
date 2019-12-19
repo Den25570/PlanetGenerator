@@ -8,10 +8,18 @@
 #include <cmath>
 #include <math.h>
 
+#include "imgui\imgui.h"
+#include "imgui\imgui_impl_glfw.h"
+#include "imgui\imgui_impl_opengl3.h"
+#include <stdio.h>
 
-#define GLEW_STATIC
-#include <gl/glew.h>
-#include  <gl/glfw3.h>
+#ifndef GRAPHICS_H
+#define GRAPHICS_H
+	#define GLEW_STATIC
+	#include <gl/glew.h>
+	#include  <gl/glfw3.h>
+#endif
+
 #include  <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
@@ -19,18 +27,20 @@
 #include <ctime>
 
 #include "Camera.h"
-#include "ColorMap.h"
 #include "Shader.hpp"
 #include "VAO.hpp"
+#include "Texture.hpp"
 
 #include "Planet.hpp"
+#include "StructToFlat.hpp"
+#include "SkyBox.hpp"
 
+int main();
+
+void drawFrameBuffer(VAO &frame_quad_VAO, Shader &blurFrameShader, unsigned int  colorBuffers[2], unsigned int  pingpongColorbuffers[2], bool horizontal = true);
 GLFWwindow *  InitWindow(int * settings);
-void drawTriangleMesh(std::vector<GLfloat>& vertices, std::vector<GLuint>& indices, const TriangleMesh * planetMesh);
-void drawIndexedTriangles(std::vector<GLfloat>& vertices, std::vector<GLuint>& indices, const QuadGeometryV * planetMesh);
-void drawTriangles(std::vector<GLfloat> &vertices, const Voronoi * planetMesh);
-std::vector<vec3> drawPlateBoundaries(std::vector<GLfloat> &vertices, TriangleMesh * mesh, Map * map);
-std::vector<vec3> drawPlateVectors(std::vector<GLfloat> &vertices, TriangleMesh * mesh, Map * map);
-std::vector<vec3> drawRivers(std::vector<GLfloat> &vertices, TriangleMesh * mesh, Map * map);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void UpdateCamera();
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void key_callback(GLFWwindow * window, int key, int scancode, int action, int mode);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);

@@ -195,9 +195,9 @@ int Isocahedron::triangleExist(std::list<std::vector<unsigned short>> *triangles
 
 void TriangleMesh::update() {
 	auto _triangles = this->triangles;
-	auto _halfedges = halfedges;
-	auto _r_vertex = verticles;
-	auto _t_vertex = t_verticles;
+	auto _halfedges = this->halfedges;
+	auto _r_vertex = this->verticles;
+	auto _t_vertex = this->t_verticles;
 
 	numSides = _triangles.size();
 	numRegions = _r_vertex.size();
@@ -220,7 +220,7 @@ void TriangleMesh::update() {
 	// Construct an index for finding sides connected to a region
 	r_in_s = std::vector<int>(numRegions);
 	for (int s = 0; s < _triangles.size(); s++) {
-		int endpoint = _triangles[s_next_s(s)];
+		int endpoint = _triangles[next_site(s)];
 		if (r_in_s[endpoint] == 0 || _halfedges[s] == -1) {
 			r_in_s[endpoint] = s;
 		}
@@ -232,7 +232,7 @@ void TriangleMesh::update() {
 		std::vector<std::size_t> a = _r_vertex[_triangles[s]];
 		std::vector<std::size_t> b = _r_vertex[_triangles[s + 1]];
 		std::vector<std::size_t> c = _r_vertex[_triangles[s + 2]];
-		if (s_ghost(s)) {
+		if (ghost_sites(s)) {
 			// ghost triangle center is just outside the unpaired side
 			std::size_t dx = b[0] - a[0];
 			std::size_t dy = b[1] - a[1];
@@ -256,67 +256,67 @@ void TriangleMesh::Update_d(std::vector<std::vector<std::size_t>> _points, std::
 	update();
 }
 
-int TriangleMesh::s_to_t(int s) { return (s / 3) | 0; }
-int TriangleMesh::s_prev_s(int s) { return (s % 3 == 0) ? s + 2 : s - 1; }
-int TriangleMesh::s_next_s(int s) { return (s % 3 == 2) ? s - 2 : s + 1; }
+int TriangleMesh::site_to_triangle(int site) { return (site / 3) | 0; }
+int TriangleMesh::prev_site(int site) { return (site % 3 == 0) ? site + 2 : site - 1; }
+int TriangleMesh::next_site(int site) { return (site % 3 == 2) ? site - 2 : site + 1; }
 
 int TriangleMesh::ghost_r() { return numRegions - 1; }
-int TriangleMesh::s_ghost(int s) { return s >= numSolidSides; }
-int TriangleMesh::r_ghost(int r) { return r == numRegions - 1; }
-int TriangleMesh::t_ghost(int t) { return s_ghost(3 * t); }
-int TriangleMesh::s_boundary(int s) { return s_ghost(s) && (s % 3 == 0); }
+int TriangleMesh::ghost_sites(int site) { return site >= numSolidSides; }
+int TriangleMesh::ghost_regions(int r) { return r == numRegions - 1; }
+int TriangleMesh::ghost_triangles(int t) { return ghost_sites(3 * t); }
+int TriangleMesh::s_boundary(int site) { return ghost_sites(site) && (site % 3 == 0); }
 int TriangleMesh::r_boundary(int r) { return r < numBoundaryRegions; }
 
-int TriangleMesh::r_x(int r) { return verticles[r][0]; }
-int TriangleMesh::r_y(int r) { return verticles[r][1]; }
-int TriangleMesh::t_x(int r) { return t_verticles[r][0]; }
-int TriangleMesh::t_y(int r) { return t_verticles[r][1]; }
-std::vector<int> TriangleMesh::r_pos(int r) { auto out = std::vector<int>(2); out[0] = r_x(r); out[1] = r_y(r); return out; }
-std::vector<int> TriangleMesh::t_pos(int t) { auto out = std::vector<int>(2); out[0] = t_x(t); out[1] = t_y(t); return out; }
+int TriangleMesh::region_x(int r) { return verticles[r][0]; }
+int TriangleMesh::region_y(int r) { return verticles[r][1]; }
+int TriangleMesh::triangle_center_x(int r) { return t_verticles[r][0]; }
+int TriangleMesh::triangle_center_y(int r) { return t_verticles[r][1]; }
+std::vector<int> TriangleMesh::region_position(int r) { auto out = std::vector<int>(2); out[0] = region_x(r); out[1] = region_y(r); return out; }
+std::vector<int> TriangleMesh::triangle_center_position(int t) { auto out = std::vector<int>(2); out[0] = triangle_center_x(t); out[1] = triangle_center_y(t); return out; }
 
-int TriangleMesh::s_begin_r(int s) { return triangles[s]; }
-int TriangleMesh::s_end_r(int s) { return triangles[s_next_s(s)]; }
+int TriangleMesh::start_site_of_region(int site) { return triangles[site]; }
+int TriangleMesh::s_end_r(int site) { return triangles[next_site(site)]; }
 
-int TriangleMesh::s_inner_t(int s) { return s_to_t(s); }
-int TriangleMesh::s_outer_t(int s) { return s_to_t(halfedges[s]); }
+int TriangleMesh::inner_triangle(int site) { return site_to_triangle(site); }
+int TriangleMesh::outer_triangle(int site) { return site_to_triangle(halfedges[site]); }
 
-int TriangleMesh::s_opposite_s(int s) { return halfedges[s]; }
+int TriangleMesh::s_opposite_s(int site) { return halfedges[site]; }
 
 std::vector<std::size_t> TriangleMesh::t_circulate_s(std::size_t t) { auto result = std::vector<std::size_t>(3); for (std::size_t i = 0; i < 3; i++) { result[i] = 3 * t + i; } return result; }
 std::vector<std::size_t> TriangleMesh::t_circulate_r(std::size_t t) { auto result = std::vector<std::size_t>(3); for (std::size_t i = 0; i < 3; i++) { result[i] = triangles[3 * t + i]; } return result; }
-std::vector<std::size_t> TriangleMesh::t_circulate_t(std::size_t t) { auto result = std::vector<std::size_t>(3); for (std::size_t i = 0; i < 3; i++) { result[i] = s_outer_t(3 * t + i); } return result; }
+std::vector<std::size_t> TriangleMesh::t_circulate_t(std::size_t t) { auto result = std::vector<std::size_t>(3); for (std::size_t i = 0; i < 3; i++) { result[i] = outer_triangle(3 * t + i); } return result; }
 
-std::vector<std::size_t> TriangleMesh::r_circulate_s(std::size_t r) {
+std::vector<std::size_t> TriangleMesh::region_sites(std::size_t r) {
 	const int s0 = r_in_s[r];
 	auto incoming = s0;
 	std::vector<std::size_t> result;
 	do {
 		result.push_back(halfedges[incoming]);
-		auto outgoing = s_next_s(incoming);
+		auto outgoing = next_site(incoming);
 		incoming = halfedges[outgoing];
 	} while (incoming != -1 && incoming != s0);
 	return result;
 }
 
-std::vector<std::size_t> TriangleMesh::r_circulate_r(std::size_t r) {
+std::vector<std::size_t> TriangleMesh::neighbour_regions(std::size_t r) {
 	const int s0 = r_in_s[r];
 	auto incoming = s0;
 	std::vector<std::size_t> result;
 	do {
-		result.push_back(s_begin_r(incoming));
-		auto outgoing = s_next_s(incoming);
+		result.push_back(start_site_of_region(incoming));
+		auto outgoing = next_site(incoming);
 		incoming = halfedges[outgoing];
 	} while (incoming != -1 && incoming != s0);
 	return result;
 }
 
-std::vector<std::size_t> TriangleMesh::r_circulate_t(std::size_t r) {
+std::vector<std::size_t> TriangleMesh::neighbour_triangle_centers(std::size_t r) {
 	const int s0 = r_in_s[r];
 	auto incoming = s0;
 	std::vector<std::size_t> result;
 	do {
-		result.push_back(s_to_t(incoming));
-		auto outgoing = s_next_s(incoming);
+		result.push_back(site_to_triangle(incoming));
+		auto outgoing = next_site(incoming);
 		incoming = halfedges[outgoing];
 	} while (incoming != -1 && incoming != s0);
 	return result;
@@ -327,11 +327,10 @@ float randFloat()
 	return ((float)rand() / RAND_MAX);
 }
 
-#define undefined std::numeric_limits<int>::max()
 std::vector<vec3> generateFibonacciSphere(int N, float jitter) {
 	std::vector<float> a_latlong;
-	std::vector<float> rand_latitude_shift = std::vector<float>(N, undefined);
-	std::vector<float> rand_longitude_shift = std::vector<float>(N, undefined);
+	std::vector<float> rand_latitude_shift = std::vector<float>(N, std::numeric_limits<int>::max());
+	std::vector<float> rand_longitude_shift = std::vector<float>(N, std::numeric_limits<int>::max());
 
 	const float s = 3.6f / sqrtf(N);
 	const float dz = 2.0f / N;
@@ -339,8 +338,8 @@ std::vector<vec3> generateFibonacciSphere(int N, float jitter) {
 		float r = sqrtf(1.0f - z * z);
 		float latitude_deg = asinf(z) * 180.0f / M_PI;
 		float longitude_deg = lng * 180.0f / M_PI;
-		if (rand_latitude_shift[k] == undefined) rand_latitude_shift[k] = randFloat() - randFloat();
-		if (rand_longitude_shift[k] == undefined) rand_longitude_shift[k] = randFloat() - randFloat();
+		if (rand_latitude_shift[k] == std::numeric_limits<int>::max()) rand_latitude_shift[k] = randFloat() - randFloat();
+		if (rand_longitude_shift[k] == std::numeric_limits<int>::max()) rand_longitude_shift[k] = randFloat() - randFloat();
 		latitude_deg += jitter * rand_latitude_shift[k] * (latitude_deg - asin(max(-1.0, z - dz * 2 * M_PI * r / s)) * 180 / M_PI);
 		longitude_deg += jitter * rand_longitude_shift[k] * (s / r * 180.0 / M_PI);
 		a_latlong.push_back(latitude_deg);
@@ -359,7 +358,7 @@ std::vector<vec3> generateFibonacciSphere(int N, float jitter) {
 	return out;
 }
 
-TriangleMesh * generateDelanuaySphere(std::vector<vec3>* verticles) {
+TriangleMesh generateDelanuaySphere(std::vector<vec3>* verticles) {
 	Delaunator delaunay = Delaunator(vec2ToDouble(stereographicProjection((verticles))));
 
 	std::vector<vec3> points;
@@ -371,7 +370,7 @@ TriangleMesh * generateDelanuaySphere(std::vector<vec3>* verticles) {
 
 	auto dummy_r_vertex = std::vector<std::vector<std::size_t>>(verticles->size() + 1, std::vector<std::size_t>(2, 0));
 
-	TriangleMesh * mesh = new TriangleMesh(0,
+	TriangleMesh mesh = TriangleMesh(0,
 		delaunay.triangles.size(),
 		dummy_r_vertex,
 		delaunay.triangles,

@@ -74,45 +74,45 @@ struct TriangleMesh {
 
 	void update();
 
-	static int s_to_t(int s);
-	static int s_prev_s(int s);
-	static int s_next_s(int s);
+	static int site_to_triangle(int s);
+	static int prev_site(int s);
+	static int next_site(int s);
 
 	int ghost_r();
-	int s_ghost(int s);
-	int r_ghost(int r);
-	int t_ghost(int t);
+	int ghost_sites(int s);
+	int ghost_regions(int r);
+	int ghost_triangles(int t);
 	int s_boundary(int s);
 	int r_boundary(int r);
 
-	int r_x(int r);
-	int r_y(int r);
-	int t_x(int r);
-	int t_y(int r);
-	std::vector<int> r_pos(int r);
-	std::vector<int> t_pos(int t);
+	int region_x(int r);
+	int region_y(int r);
+	int triangle_center_x(int r);
+	int triangle_center_y(int r);
+	std::vector<int> region_position(int r);
+	std::vector<int> triangle_center_position(int t);
 
-	int s_begin_r(int s);
+	int start_site_of_region(int s);
 	int s_end_r(int s);
 
-	int s_inner_t(int s);
-	int s_outer_t(int s);
+	int inner_triangle(int s);
+	int outer_triangle(int s);
 
 	int s_opposite_s(int s);
 
 	std::vector<std::size_t> t_circulate_s(std::size_t t);
 	std::vector<std::size_t> t_circulate_r(std::size_t t);
 	std::vector<std::size_t> t_circulate_t(std::size_t t);
-	std::vector<std::size_t> r_circulate_s(std::size_t r);
-	std::vector<std::size_t> r_circulate_r(std::size_t r);
-	std::vector<std::size_t> r_circulate_t(std::size_t r);
+	std::vector<std::size_t> region_sites(std::size_t r);
+	std::vector<std::size_t> neighbour_regions(std::size_t r);
+	std::vector<std::size_t> neighbour_triangle_centers(std::size_t r);
 };
 
 float randFloat();
 
 std::vector<vec3> generateFibonacciSphere(int N, float jitter = 0);
 
-TriangleMesh * generateDelanuaySphere(std::vector<vec3>* verticles);
+TriangleMesh generateDelanuaySphere(std::vector<vec3>* verticles);
 void addSouthPoleToMesh(std::size_t southPoleId, Delaunator * delanuay, std::vector<vec3> * p);
 
 

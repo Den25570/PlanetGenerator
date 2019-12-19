@@ -7,16 +7,20 @@
 
 class Map {
 public:
-	std::vector<float> r_xyz;
-	std::vector<float> t_xyz;
-	std::vector<float> r_elevation;
-	std::vector<float> t_elevation;
-	std::vector<float> r_moisture;
-	std::vector<float> t_moisture;
-	std::vector<int> t_downflow_s;
-	std::vector<int> order_t;
-	std::vector<float> t_flow;
-	std::vector<float> s_flow;
+	std::vector<float> region_position;	
+	std::vector<float> region_elevation;	
+	std::vector<float> region_moisture;
+	std::vector<float> region_temperature;
+
+	std::vector<float> triangle_center_position;
+	std::vector<float> triangle_center_elevation;
+	std::vector<float> triangle_center_moisture;
+	std::vector<float> triangle_center_temperature;
+
+	std::vector<int> downflow_sites_for_triangle;
+	std::vector<int> river_order_triangles;
+	std::vector<float> triangle_flow;
+	std::vector<float> sites_flow;
 
 	Plates plates;
 	Borders borders;

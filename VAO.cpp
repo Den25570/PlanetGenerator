@@ -16,7 +16,7 @@ void VAO::initializeBuffers(std::vector<int> attributes_size, std::vector<GLfloa
 	if (indices != NULL) glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices->size() * sizeof(GLuint), &(*indices)[0], GL_STATIC_DRAW);
 
 	// ”станавливаем указатели на вершинные атрибуты 
-	int total_attributes_size = 0;
+	total_attributes_size = 0;
 	for (int i = 0; i < attributes_size.size(); i++)
 		total_attributes_size += attributes_size[i];
 
@@ -29,15 +29,19 @@ void VAO::initializeBuffers(std::vector<int> attributes_size, std::vector<GLfloa
 	glBindVertexArray(0);
 }
 
-void VAO::use(int polygon_mode_side, int polygon_mode) {
-	shader->Use();
+void VAO::use(int draw_mode_side, int draw_mode) {
 	glBindVertexArray(VAO_index);
-	glPolygonMode(polygon_mode_side, polygon_mode);
+	glPolygonMode(draw_mode_side, draw_mode);
 }
 
-void VAO::draw(int draw_mode) {
+void VAO::draw(int polygon_mode) {
 	if (indices_size == 0) 
-		glDrawArrays(draw_mode, 0, vertices_size);
+		glDrawArrays(polygon_mode, 0, vertices_size / total_attributes_size);
 	else 
-		glDrawElements(draw_mode, indices_size, GL_UNSIGNED_INT, 0);
+		glDrawElements(polygon_mode, indices_size, GL_UNSIGNED_INT, 0);
+}
+
+bool VAO::initialized()
+{
+	return VAO_index;
 }
